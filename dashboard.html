@@ -333,6 +333,20 @@
   </style>
 </head>
 <body>
+  <script>
+  const adminPassword = "admin123";
+  const saved = sessionStorage.getItem("adminAuth");
+
+  if (saved !== "true") {
+    const pass = prompt("🔒 أدخل كلمة مرور الأدمن:");
+    if (pass !== adminPassword) {
+      alert("❌ كلمة مرور خاطئة");
+      window.location.href = "index.html";
+    } else {
+      sessionStorage.setItem("adminAuth", "true");
+    }
+  }
+</script>
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
