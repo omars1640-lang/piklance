@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة التحكم - PikLance</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F4F6FA;
+      --sidebar-bg: #1E1E2D;
+      --card-bg: #FFFFFF;
+      --text: #2D3436;
+      --text-light: #636E72;
+      --border: #E2E8F0;
+      --primary: #6C5CE7;
+      --primary-dark: #5A4BD1;
+      --secondary: #FF6B6B;
+      --accent: #FFD93D;
+      --green: #10B981;
+      --red: #EF4444;
+      --orange: #F59E0B;
+      --shadow: 0 4px 15px rgba(0,0,0,0.05);
+      --transition: all 0.3s ease;
+    }
+    [data-theme="dark"] {
+      --bg: #121218;
+      --sidebar-bg: #0F0F1A;
+      --card-bg: #1E1E2D;
+      --text: #E2E8F0;
+      --text-light: #A0AEC0;
+      --border: #2D2D3F;
+      --shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Cairo', 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ========== Sidebar ========== */
+    .sidebar {
+      width: 260px;
+      background: var(--sidebar-bg);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      z-index: 100;
+      transition: transform 0.3s;
+    }
+    .sidebar-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .sidebar-logo {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #fff;
+      text-decoration: none;
+    }
+    .sidebar-logo span { color: var(--primary); }
+    .admin-info {
+      padding: 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .admin-avatar {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.2rem;
+    }
+    .admin-name { font-weight: 700; }
+    .admin-role { font-size: 0.8rem; opacity: 0.7; }
+    .sidebar-nav { flex: 1; overflow-y: auto; padding: 1rem 0; }
+    .nav-item { list-style: none; }
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 0.8rem 1.5rem;
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      transition: var(--transition);
+      border-right: 3px solid transparent;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .nav-link:hover, .nav-link.active {
+      background: rgba(255,255,255,0.05);
+      color: #fff;
+      border-right-color: var(--primary);
+    }
+    .nav-icon { font-size: 1.2rem; width: 25px; text-align: center; }
+    .nav-badge {
+      background: var(--secondary);
+      color: #fff;
+      padding: 0.2rem 0.6rem;
+      border-radius: 10px;
+      font-size: 0.7rem;
+      margin-right: auto;
+    }
+    .nav-badge.green { background: var(--green); }
+
+    /* ========== Main Content ========== */
+    .main-content {
+      flex: 1;
+      margin-right: 260px;
+      padding: 1.5rem;
+    }
+    .top-bar {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+    .page-title { font-size: 1.3rem; font-weight: 700; color: var(--text); }
+    .top-actions { display: flex; gap: 1rem; align-items: center; }
+    .theme-toggle-btn {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* ========== Stats Cards ========== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .stat-info h3 { font-size: 0.9rem; color: var(--text-light); margin-bottom: 0.5rem; }
+    .stat-number { font-size: 2rem; font-weight: 800; }
+    .stat-change { font-size: 0.85rem; margin-top: 0.3rem; }
+    .stat-change.up { color: var(--green); }
+    .stat-change.down { color: var(--red); }
+    .stat-icon {
+      width: 55px;
+      height: 55px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+    }
+    .icon-purple { background: rgba(108,92,231,0.1); color: var(--primary); }
+    .icon-green { background: rgba(16,185,129,0.1); color: var(--green); }
+    .icon-orange { background: rgba(245,158,11,0.1); color: var(--orange); }
+    .icon-red { background: rgba(239,68,68,0.1); color: var(--red); }
+
+    /* ========== Charts Row ========== */
+    .charts-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .chart-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .chart-header h3 { font-size: 1.1rem; }
+    .chart-header select {
+      padding: 0.4rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Cairo', sans-serif;
+    }
+    .chart-placeholder {
+      height: 250px;
+      background: var(--bg);
+      border-radius: 12px;
+      display: flex;
+      align-items: flex-end;
+      padding: 1rem;
+      gap: 0.5rem;
+    }
+    .bar {
+      flex: 1;
+      border-radius: 8px 8px 0 0;
+      transition: height 0.5s;
+      position: relative;
+      min-width: 30px;
+    }
+    .bar-purple { background: var(--primary); }
+    .bar-green { background: var(--green); }
+    .bar-orange { background: var(--orange); }
+    .bar-label { position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; color: var(--text-light); white-space: nowrap; }
+    .bar-value { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; font-weight: 700; }
+
+    /* ========== Tables ========== */
+    .table-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      margin-bottom: 1.5rem;
+      overflow-x: auto;
+    }
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .table-header h3 { font-size: 1.1rem; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: right; padding: 0.8rem; background: var(--bg); color: var(--text-light); font-size: 0.85rem; font-weight: 700; }
+    td { padding: 0.8rem; border-bottom: 1px solid var(--border); }
+    .badge {
+      padding: 0.3rem 0.8rem;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .badge-success { background: rgba(16,185,129,0.1); color: #10B981; }
+    .badge-warning { background: rgba(245,158,11,0.1); color: #F59E0B; }
+    .badge-danger { background: rgba(239,68,68,0.1); color: #EF4444; }
+    .badge-info { background: rgba(108,92,231,0.1); color: #6C5CE7; }
+    .action-btn {
+      padding: 0.3rem 0.8rem;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      font-family: 'Cairo', sans-serif;
+      margin: 0 0.2rem;
+      font-size: 0.8rem;
+    }
+    .btn-view { background: rgba(108,92,231,0.1); color: var(--primary); }
+    .btn-approve { background: rgba(16,185,129,0.1); color: #10B981; }
+    .btn-reject { background: rgba(239,68,68,0.1); color: #EF4444; }
+
+    /* ========== Modal ========== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-box {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 2rem;
+      max-width: 600px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .modal-close { font-size: 1.5rem; cursor: pointer; color: var(--text-light); background: none; border: none; }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .detail-label { color: var(--text-light); }
+    .detail-value { font-weight: 600; }
+    .id-images { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; }
+    .id-images img { width: 100%; border-radius: 8px; border: 1px solid var(--border); }
+
+    @media (max-width: 1024px) {
+      .charts-row { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(100%); }
+      .main-content { margin-right: 0; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a href="index.html" class="sidebar-logo">Pik<span>Lance</span> ⚡</a>
+    </div>
+    <div class="admin-info">
+      <div class="admin-avatar">أ</div>
+      <div>
+        <div class="admin-name">أحمد المدير</div>
+        <div class="admin-role">مدير النظام</div>
+      </div>
+    </div>
+    <ul class="sidebar-nav">
+      <li class="nav-item"><a class="nav-link active" onclick="showSection('dashboard')"><span class="nav-icon">📊</span> لوحة المعلومات</a></li>
+      <li class="nav-item"><a class="nav-link" onclick="showSection('verifications')"><span class="nav-icon">🔒</span> طلبات التوثيق <span class="nav-badge" id="pendingBadge">0</span></a></li>
+      <li class="nav-item"><a class="nav-link" onclick="showSection('users')"><span class="nav-icon">👥</span> جميع المستخدمين</a></li>
+      <li class="nav-item"><a class="nav-link" onclick="showSection('freelancers')"><span class="nav-icon">🎨</span> المستقلون</a></li>
+      <li class="nav-item"><a class="nav-link" onclick="showSection('clients')"><span class="nav-icon">🛍️</span> العملاء</a></li>
+      <li class="nav-item"><a class="nav-link" onclick="showSection('services')"><span class="nav-icon">📦</span> الخدمات</a></li>
+      <li class="nav-item"><a class="nav-link" onclick="showSection('transactions')"><span class="nav-icon">💰</span> المعاملات المالية</a></li>
+      <li class="nav-item"><a class="nav-link" onclick="showSection('withdrawals')"><span class="nav-icon">💵</span> طلبات السحب <span class="nav-badge green" id="withdrawBadge">0</span></a></li>
+      <li class="nav-item"><a class="nav-link" onclick="showSection('reports')"><span class="nav-icon">📈</span> التقارير</a></li>
+      <li class="nav-item"><a class="nav-link" href="index.html"><span class="nav-icon">🏠</span> الموقع الرئيسي</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <h1 class="page-title" id="pageTitle">📊 لوحة المعلومات</h1>
+      <div class="top-actions">
+        <button class="theme-toggle-btn" onclick="toggleTheme()">🌙</button>
+      </div>
+    </div>
+
+    <!-- ==================== Dashboard Section ==================== -->
+    <div class="section active" id="dashboard-section">
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-info">
+            <h3>إجمالي المستخدمين</h3>
+            <div class="stat-number" style="color:var(--primary);" id="totalUsers">0</div>
+            <div class="stat-change up" id="usersChange">↑ 12% هذا الشهر</div>
+          </div>
+          <div class="stat-icon icon-purple">👥</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-info">
+            <h3>المستقلون</h3>
+            <div class="stat-number" style="color:var(--green);" id="totalFreelancers">0</div>
+            <div class="stat-change up">↑ 8% هذا الشهر</div>
+          </div>
+          <div class="stat-icon icon-green">🎨</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-info">
+            <h3>العملاء</h3>
+            <div class="stat-number" style="color:var(--orange);" id="totalClients">0</div>
+            <div class="stat-change up">↑ 15% هذا الشهر</div>
+          </div>
+          <div class="stat-icon icon-orange">🛍️</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-info">
+            <h3>طلبات معلقة</h3>
+            <div class="stat-number" style="color:var(--red);" id="pendingCount">0</div>
+            <div class="stat-change down">⏳ بحاجة مراجعة</div>
+          </div>
+          <div class="stat-icon icon-red">🔒</div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="charts-row">
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>📊 المستخدمون الجدد (آخر 7 أيام)</h3>
+            <select onchange="updateCharts()" id="chartPeriod">
+              <option value="7">آخر 7 أيام</option>
+              <option value="30">آخر 30 يوم</option>
+            </select>
+          </div>
+          <div class="chart-placeholder" id="usersChart"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>📈 توزيع المستخدمين</h3>
+          </div>
+          <div style="text-align:center; padding:2rem;">
+            <div style="font-size:3rem;" id="freelancerPercent">0%</div>
+            <p style="color:var(--text-light);">مستقلون</p>
+            <div style="font-size:3rem; margin-top:1rem;" id="clientPercent">0%</div>
+            <p style="color:var(--text-light);">عملاء</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="table-card">
+        <div class="table-header">
+          <h3>🕐 آخر النشاطات</h3>
+        </div>
+        <table>
+          <thead><tr><th>الحدث</th><th>المستخدم</th><th>التاريخ</th><th>النوع</th></tr></thead>
+          <tbody id="recentActivity"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== Verifications Section ==================== -->
+    <div class="section" id="verifications-section">
+      <div class="table-card">
+        <div class="table-header">
+          <h3>🔒 طلبات التوثيق المعلقة</h3>
+          <span class="badge badge-warning" id="pendingVerifications">0 طلبات</span>
+        </div>
+        <table>
+          <thead><tr><th>التاريخ</th><th>الاسم</th><th>البريد</th><th>الهاتف</th><th>التخصص</th><th>رقم الهوية</th><th>الإجراءات</th></tr></thead>
+          <tbody id="verificationsTable"></tbody>
+        </table>
+        <div id="noVerifications" style="text-align:center; padding:2rem; color:var(--text-light); display:none;">
+          ✅ لا توجد طلبات توثيق معلقة
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== Users Section ==================== -->
+    <div class="section" id="users-section">
+      <div class="table-card">
+        <div class="table-header"><h3>👥 جميع المستخدمين</h3></div>
+        <table>
+          <thead><tr><th>الاسم</th><th>البريد</th><th>الهاتف</th><th>النوع</th><th>الحالة</th><th>تاريخ التسجيل</th></tr></thead>
+          <tbody id="allUsersTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== Freelancers Section ==================== -->
+    <div class="section" id="freelancers-section">
+      <div class="stats-grid" style="margin-bottom:1.5rem;">
+        <div class="stat-card"><div class="stat-info"><h3>المستقلون النشطون</h3><div class="stat-number" style="color:var(--green);" id="activeFreelancers">0</div></div><div class="stat-icon icon-green">✅</div></div>
+        <div class="stat-card"><div class="stat-info"><h3>قيد المراجعة</h3><div class="stat-number" style="color:var(--orange);" id="pendingFreelancers">0</div></div><div class="stat-icon icon-orange">⏳</div></div>
+        <div class="stat-card"><div class="stat-info"><h3>مرفوضون</h3><div class="stat-number" style="color:var(--red);" id="rejectedFreelancers">0</div></div><div class="stat-icon icon-red">❌</div></div>
+      </div>
+      <div class="table-card">
+        <div class="table-header"><h3>🎨 قائمة المستقلين</h3></div>
+        <table>
+          <thead><tr><th>الاسم</th><th>البريد</th><th>التخصص</th><th>خدمات</th><th>التقييم</th><th>الحالة</th></tr></thead>
+          <tbody id="freelancersTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== Clients Section ==================== -->
+    <div class="section" id="clients-section">
+      <div class="table-card">
+        <div class="table-header"><h3>🛍️ قائمة العملاء</h3></div>
+        <table>
+          <thead><tr><th>الاسم</th><th>البريد</th><th>الهاتف</th><th>المدينة</th><th>عدد المشتريات</th><th>تاريخ التسجيل</th></tr></thead>
+          <tbody id="clientsTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== Services Section ==================== -->
+    <div class="section" id="services-section">
+      <div class="stats-grid" style="margin-bottom:1.5rem;">
+        <div class="stat-card"><div class="stat-info"><h3>إجمالي الخدمات</h3><div class="stat-number" style="color:var(--primary);" id="totalServices">0</div></div></div>
+        <div class="stat-card"><div class="stat-info"><h3>خدمات نشطة</h3><div class="stat-number" style="color:var(--green);" id="activeServices">0</div></div></div>
+        <div class="stat-card"><div class="stat-info"><h3>قيد المراجعة</h3><div class="stat-number" style="color:var(--orange);" id="pendingServices">0</div></div></div>
+      </div>
+      <div class="table-card">
+        <div class="table-header"><h3>📦 قائمة الخدمات</h3></div>
+        <table>
+          <thead><tr><th>العنوان</th><th>المستقل</th><th>الفئة</th><th>السعر</th><th>المبيعات</th><th>الحالة</th></tr></thead>
+          <tbody id="servicesTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== Transactions Section ==================== -->
+    <div class="section" id="transactions-section">
+      <div class="stats-grid" style="margin-bottom:1.5rem;">
+        <div class="stat-card"><div class="stat-info"><h3>إجمالي الإيرادات</h3><div class="stat-number" style="color:var(--primary);" id="totalRevenue">0</div></div></div>
+        <div class="stat-card"><div class="stat-info"><h3>عمولة المنصة</h3><div class="stat-number" style="color:var(--green);" id="platformCommission">0</div></div></div>
+        <div class="stat-card"><div class="stat-info"><h3>أرباح المستقلين</h3><div class="stat-number" style="color:var(--orange);" id="freelancerEarnings">0</div></div></div>
+      </div>
+      <div class="table-card">
+        <div class="table-header"><h3>💰 سجل المعاملات</h3></div>
+        <table>
+          <thead><tr><th>التاريخ</th><th>المستخدم</th><th>النوع</th><th>المبلغ</th><th>طريقة الدفع</th><th>الحالة</th></tr></thead>
+          <tbody id="transactionsTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== Withdrawals Section ==================== -->
+    <div class="section" id="withdrawals-section">
+      <div class="table-card">
+        <div class="table-header">
+          <h3>💵 طلبات السحب المعلقة</h3>
+          <span class="badge badge-warning" id="pendingWithdrawals">0 طلبات</span>
+        </div>
+        <table>
+          <thead><tr><th>التاريخ</th><th>المستقل</th><th>المبلغ</th><th>طريقة السحب</th><th>رقم المحفظة</th><th>الحالة</th><th>إجراء</th></tr></thead>
+          <tbody id="withdrawalsTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== Reports Section ==================== -->
+    <div class="section" id="reports-section">
+      <div class="stats-grid" style="margin-bottom:1.5rem;">
+        <div class="stat-card"><div class="stat-info"><h3>إيرادات الشهر الحالي</h3><div class="stat-number" style="color:var(--primary);" id="monthRevenue">0</div></div></div>
+        <div class="stat-card"><div class="stat-info"><h3>مستخدمون جدد هذا الشهر</h3><div class="stat-number" style="color:var(--green);" id="monthNewUsers">0</div></div></div>
+        <div class="stat-card"><div class="stat-info"><h3>خدمات جديدة هذا الشهر</h3><div class="stat-number" style="color:var(--orange);" id="monthNewServices">0</div></div></div>
+        <div class="stat-card"><div class="stat-info"><h3>نسبة نمو المنصة</h3><div class="stat-number" style="color:var(--green);">+18%</div></div></div>
+      </div>
+      <div class="table-card">
+        <div class="table-header"><h3>📈 تقرير شهري مفصل</h3></div>
+        <table>
+          <thead><tr><th>الشهر</th><th>مستخدمون جدد</th><th>خدمات جديدة</th><th>المبيعات</th><th>العمولة</th><th>صافي الأرباح</th></tr></thead>
+          <tbody id="monthlyReport"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Modal للتفاصيل -->
+    <div class="modal-overlay" id="detailsModal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3 id="modalTitle">تفاصيل الطلب</h3>
+          <button class="modal-close" onclick="closeModal()">✕</button>
+        </div>
+        <div id="modalContent"></div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // ========== Dark Mode ==========
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      document.querySelector('.theme-toggle-btn').textContent = next === 'dark' ? '☀️' : '🌙';
+    }
+    (function() {
+      const saved = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', saved);
+      document.querySelector('.theme-toggle-btn').textContent = saved === 'dark' ? '☀️' : '🌙';
+    })();
+
+    // ========== Navigation ==========
+    const sectionTitles = {
+      dashboard: '📊 لوحة المعلومات',
+      verifications: '🔒 طلبات التوثيق',
+      users: '👥 جميع المستخدمين',
+      freelancers: '🎨 المستقلون',
+      clients: '🛍️ العملاء',
+      services: '📦 الخدمات',
+      transactions: '💰 المعاملات المالية',
+      withdrawals: '💵 طلبات السحب',
+      reports: '📈 التقارير'
+    };
+
+    function showSection(section) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+      document.getElementById(section + '-section').classList.add('active');
+      document.getElementById('pageTitle').textContent = sectionTitles[section];
+      event.target.closest('.nav-link').classList.add('active');
+      loadSectionData(section);
+    }
+
+    // ========== Data Loading ==========
+    function getData() {
+      return {
+        pendingUsers: JSON.parse(localStorage.getItem('pendingUsers') || '[]'),
+        approvedUsers: JSON.parse(localStorage.getItem('approvedUsers') || '[]'),
+        rejectedUsers: JSON.parse(localStorage.getItem('rejectedUsers') || '[]'),
+        activeUsers: JSON.parse(localStorage.getItem('activeUsers') || '[]'),
+        services: JSON.parse(localStorage.getItem('services') || '[]'),
+        transactions: JSON.parse(localStorage.getItem('transactions') || '[]'),
+        withdrawals: JSON.parse(localStorage.getItem('withdrawals') || '[]')
+      };
+    }
+
+    function loadSectionData(section) {
+      const data = getData();
+      
+      switch(section) {
+        case 'dashboard': loadDashboard(data); break;
+        case 'verifications': loadVerifications(data); break;
+        case 'users': loadAllUsers(data); break;
+        case 'freelancers': loadFreelancers(data); break;
+        case 'clients': loadClients(data); break;
+        case 'services': loadServices(data); break;
+        case 'transactions': loadTransactions(data); break;
+        case 'withdrawals': loadWithdrawals(data); break;
+        case 'reports': loadReports(data); break;
+      }
+    }
+
+    function loadDashboard(data) {
+      const allUsers = [...data.activeUsers, ...data.approvedUsers];
+      const freelancers = data.approvedUsers.filter(u => u.accountType === 'freelancer');
+      const clients = data.activeUsers.filter(u => u.accountType === 'buyer');
+      const pending = data.pendingUsers;
+
+      document.getElementById('totalUsers').textContent = allUsers.length + freelancers.length + clients.length;
+      document.getElementById('totalFreelancers').textContent = freelancers.length;
+      document.getElementById('totalClients').textContent = clients.length;
+      document.getElementById('pendingCount').textContent = pending.length;
+      document.getElementById('pendingBadge').textContent = pending.length;
+
+      // Freelancer/Client percentages
+      const total = freelancers.length + clients.length || 1;
+      document.getElementById('freelancerPercent').textContent = Math.round((freelancers.length / total) * 100) + '%';
+      document.getElementById('clientPercent').textContent = Math.round((clients.length / total) * 100) + '%';
+
+      // Recent activity
+      const activity = [
+        ...pending.map(u => ({ event: 'طلب توثيق جديد', user: u.name, date: u.submittedAt, type: 'توثيق' })),
+        ...clients.slice(-3).map(u => ({ event: 'تسجيل عميل جديد', user: u.name, date: u.registeredAt, type: 'تسجيل' })),
+        ...freelancers.slice(-3).map(u => ({ event: 'قبول مستقل', user: u.name, date: u.approvedAt, type: 'قبول' }))
+      ].sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0,5);
+
+      document.getElementById('recentActivity').innerHTML = activity.map(a => `
+        <tr>
+          <td>${a.event}</td>
+          <td>${a.user}</td>
+          <td>${new Date(a.date).toLocaleDateString('ar')}</td>
+          <td><span class="badge ${a.type === 'توثيق' ? 'badge-warning' : a.type === 'تسجيل' ? 'badge-info' : 'badge-success'}">${a.type}</span></td>
+        </tr>
+      `).join('');
+
+      updateCharts();
+    }
+
+    function updateCharts() {
+      const days = parseInt(document.getElementById('chartPeriod').value);
+      const chart = document.getElementById('usersChart');
+      const bars = [];
+      for(let i=days-1; i>=0; i--) {
+        const value = Math.floor(Math.random() * 15) + 2;
+        const height = (value / 15) * 200;
+        bars.push(`
+          <div style="flex:1; text-align:center;">
+            <div style="height:${height}px; background:var(--primary); border-radius:8px 8px 0 0; transition:0.5s; position:relative;">
+              <span style="position:absolute; top:-20px; left:50%; transform:translateX(-50%); font-weight:700; font-size:0.8rem;">${value}</span>
+            </div>
+            <span style="font-size:0.7rem; color:var(--text-light);">يوم ${days-i}</span>
+          </div>
+        `);
+      }
+      chart.innerHTML = bars.join('');
+    }
+
+    function loadVerifications(data) {
+      const pending = data.pendingUsers;
+      document.getElementById('pendingVerifications').textContent = pending.length + ' طلبات';
+      document.getElementById('pendingBadge').textContent = pending.length;
+
+      if(pending.length === 0) {
+        document.getElementById('verificationsTable').innerHTML = '';
+        document.getElementById('noVerifications').style.display = 'block';
+      } else {
+        document.getElementById('noVerifications').style.display = 'none';
+        document.getElementById('verificationsTable').innerHTML = pending.map(u => `
+          <tr>
+            <td>${new Date(u.submittedAt).toLocaleDateString('ar')}</td>
+            <td>${u.name}</td>
+            <td>${u.email}</td>
+            <td>${u.phone}</td>
+            <td>${u.specialty || '-'}</td>
+            <td>${u.idNumber}</td>
+            <td>
+              <button class="action-btn btn-view" onclick="viewDetails('${u.id}')">👁️ عرض</button>
+              <button class="action-btn btn-approve" onclick="approveUser('${u.id}')">✅ قبول</button>
+              <button class="action-btn btn-reject" onclick="rejectUser('${u.id}')">❌ رفض</button>
+            </td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    function loadAllUsers(data) {
+      const all = [
+        ...data.activeUsers.map(u => ({...u, status: 'نشط'})),
+        ...data.approvedUsers.map(u => ({...u, status: 'نشط'})),
+        ...data.pendingUsers.map(u => ({...u, status: 'معلق'})),
+        ...data.rejectedUsers.map(u => ({...u, status: 'مرفوض'}))
+      ];
+      document.getElementById('allUsersTable').innerHTML = all.map(u => `
+        <tr>
+          <td>${u.name}</td>
+          <td>${u.email}</td>
+          <td>${u.phone || '-'}</td>
+          <td>${u.accountType === 'freelancer' ? 'مستقل' : 'عميل'}</td>
+          <td><span class="badge ${u.status === 'نشط' ? 'badge-success' : u.status === 'معلق' ? 'badge-warning' : 'badge-danger'}">${u.status}</span></td>
+          <td>${new Date(u.registeredAt || u.submittedAt || u.approvedAt).toLocaleDateString('ar')}</td>
+        </tr>
+      `).join('');
+    }
+
+    function loadFreelancers(data) {
+      const freelancers = data.approvedUsers.filter(u => u.accountType === 'freelancer');
+      document.getElementById('activeFreelancers').textContent = freelancers.length;
+      document.getElementById('pendingFreelancers').textContent = data.pendingUsers.filter(u => u.accountType === 'freelancer').length;
+      document.getElementById('rejectedFreelancers').textContent = data.rejectedUsers.filter(u => u.accountType === 'freelancer').length;
+
+      document.getElementById('freelancersTable').innerHTML = freelancers.map(u => `
+        <tr>
+          <td>${u.name}</td>
+          <td>${u.email}</td>
+          <td>${u.specialty || 'عام'}</td>
+          <td>${Math.floor(Math.random() * 20)}</td>
+          <td>⭐ ${(Math.random() * 2 + 3).toFixed(1)}</td>
+          <td><span class="badge badge-success">نشط</span></td>
+        </tr>
+      `).join('');
+    }
+
+    function loadClients(data) {
+      const clients = data.activeUsers.filter(u => u.accountType === 'buyer');
+      document.getElementById('clientsTable').innerHTML = clients.map(u => `
+        <tr>
+          <td>${u.name}</td>
+          <td>${u.email}</td>
+          <td>${u.phone || '-'}</td>
+          <td>${u.city || 'غير محدد'}</td>
+          <td>${Math.floor(Math.random() * 15)}</td>
+          <td>${new Date(u.registeredAt).toLocaleDateString('ar')}</td>
+        </tr>
+      `).join('');
+    }
+
+    function loadServices(data) {
+      const services = data.services;
+      document.getElementById('totalServices').textContent = services.length;
+      document.getElementById('activeServices').textContent = services.filter(s => s.status === 'active').length;
+      document.getElementById('pendingServices').textContent = services.filter(s => s.status === 'pending').length;
+
+      document.getElementById('servicesTable').innerHTML = services.map(s => `
+        <tr>
+          <td>${s.title || 'خدمة'}</td>
+          <td>${s.freelancer || '-'}</td>
+          <td>${s.category || '-'}</td>
+          <td>${(s.price || 0).toLocaleString()} ل.س</td>
+          <td>${s.sales || 0}</td>
+          <td><span class="badge ${s.status === 'active' ? 'badge-success' : 'badge-warning'}">${s.status === 'active' ? 'نشط' : 'معلق'}</span></td>
+        </tr>
+      `).join('');
+    }
+
+    function loadTransactions(data) {
+      const transactions = data.transactions;
+      document.getElementById('totalRevenue').textContent = transactions.reduce((sum, t) => sum + (t.amount || 0), 0).toLocaleString() + ' ل.س';
+      document.getElementById('platformCommission').textContent = Math.round(transactions.reduce((sum, t) => sum + (t.amount || 0) * 0.2, 0)).toLocaleString() + ' ل.س';
+      document.getElementById('freelancerEarnings').textContent = Math.round(transactions.reduce((sum, t) => sum + (t.amount || 0) * 0.8, 0)).toLocaleString() + ' ل.س';
+
+      document.getElementById('transactionsTable').innerHTML = transactions.slice(-10).reverse().map(t => `
+        <tr>
+          <td>${new Date(t.date).toLocaleDateString('ar')}</td>
+          <td>${t.user || '-'}</td>
+          <td>${t.type === 'deposit' ? 'شحن' : t.type === 'purchase' ? 'شراء' : 'سحب'}</td>
+          <td style="color:${t.type === 'purchase' || t.type === 'withdraw' ? 'var(--red)' : 'var(--green)'}">${t.type === 'purchase' || t.type === 'withdraw' ? '-' : '+'}${(t.amount || 0).toLocaleString()} ل.س</td>
+          <td>${t.method || '-'}</td>
+          <td><span class="badge ${t.status === 'completed' ? 'badge-success' : 'badge-warning'}">${t.status === 'completed' ? 'مكتمل' : 'معلق'}</span></td>
+        </tr>
+      `).join('');
+    }
+
+    function loadWithdrawals(data) {
+      const withdrawals = data.withdrawals;
+      document.getElementById('pendingWithdrawals').textContent = withdrawals.filter(w => w.status === 'pending').length + ' طلبات';
+      document.getElementById('withdrawBadge').textContent = withdrawals.filter(w => w.status === 'pending').length;
+
+      document.getElementById('withdrawalsTable').innerHTML = withdrawals.map(w => `
+        <tr>
+          <td>${new Date(w.date).toLocaleDateString('ar')}</td>
+          <td>${w.freelancer || '-'}</td>
+          <td>${(w.amount || 0).toLocaleString()} ل.س</td>
+          <td>${w.method || '-'}</td>
+          <td>${w.walletNumber || '-'}</td>
+          <td><span class="badge ${w.status === 'completed' ? 'badge-success' : 'badge-warning'}">${w.status === 'completed' ? 'مكتمل' : 'معلق'}</span></td>
+          <td>${w.status === 'pending' ? `<button class="action-btn btn-approve" onclick="processWithdrawal('${w.id}')">💰 دفع</button>` : '-'}</td>
+        </tr>
+      `).join('');
+    }
+
+    function loadReports(data) {
+      document.getElementById('monthRevenue').textContent = Math.floor(Math.random() * 5000000 + 1000000).toLocaleString() + ' ل.س';
+      document.getElementById('monthNewUsers').textContent = Math.floor(Math.random() * 200 + 50);
+      document.getElementById('monthNewServices').textContent = Math.floor(Math.random() * 100 + 20);
+
+      const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو'];
+      document.getElementById('monthlyReport').innerHTML = months.map(m => {
+        const sales = Math.floor(Math.random() * 3000000 + 500000);
+        const commission = Math.round(sales * 0.2);
+        return `
+          <tr>
+            <td>${m} 2025</td>
+            <td>${Math.floor(Math.random() * 150 + 30)}</td>
+            <td>${Math.floor(Math.random() * 80 + 10)}</td>
+            <td>${sales.toLocaleString()} ل.س</td>
+            <td>${commission.toLocaleString()} ل.س</td>
+            <td>${(sales - commission).toLocaleString()} ل.س</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // ========== Actions ==========
+    function viewDetails(id) {
+      const pendingUsers = JSON.parse(localStorage.getItem('pendingUsers') || '[]');
+      const user = pendingUsers.find(u => u.id === id);
+      if(!user) return;
+      document.getElementById('modalTitle').textContent = `طلب: ${user.name}`;
+      document.getElementById('modalContent').innerHTML = `
+        <div class="detail-row"><span class="detail-label">الاسم:</span><span class="detail-value">${user.name}</span></div>
+        <div class="detail-row"><span class="detail-label">البريد:</span><span class="detail-value">${user.email}</span></div>
+        <div class="detail-row"><span class="detail-label">الهاتف:</span><span class="detail-value">${user.phone}</span></div>
+        <div class="detail-row"><span class="detail-label">التخصص:</span><span class="detail-value">${user.specialty || '-'}</span></div>
+        <div class="detail-row"><span class="detail-label">نوع الهوية:</span><span class="detail-value">${user.idType === 'passport' ? 'جواز سفر' : 'بطاقة شخصية'}</span></div>
+        <div class="detail-row"><span class="detail-label">رقم الهوية:</span><span class="detail-value">${user.idNumber}</span></div>
+        <div class="detail-row"><span class="detail-label">الاسم في الهوية:</span><span class="detail-value">${user.idFullName}</span></div>
+        <div class="id-images">
+          <div><strong>الوجه الأمامي:</strong><img src="${user.frontImage || 'https://via.placeholder.com/300x200?text=Front'}" alt="أمامي"></div>
+          <div><strong>الوجه الخلفي:</strong><img src="${user.backImage || 'https://via.placeholder.com/300x200?text=Back'}" alt="خلفي"></div>
+        </div>
+        <div style="display:flex; gap:1rem; margin-top:1rem;">
+          <button class="action-btn btn-approve" style="flex:1; padding:0.8rem;" onclick="approveUser('${user.id}')">✅ قبول</button>
+          <button class="action-btn btn-reject" style="flex:1; padding:0.8rem;" onclick="rejectUser('${user.id}')">❌ رفض</button>
+        </div>
+      `;
+      document.getElementById('detailsModal').classList.add('active');
+    }
+
+    function approveUser(id) {
+      const pendingUsers = JSON.parse(localStorage.getItem('pendingUsers') || '[]');
+      const approvedUsers = JSON.parse(localStorage.getItem('approvedUsers') || '[]');
+      const idx = pendingUsers.findIndex(u => u.id === id);
+      if(idx === -1) return;
+      const user = pendingUsers[idx];
+      user.approvedAt = new Date().toISOString();
+      user.status = 'approved';
+      approvedUsers.push(user);
+      pendingUsers.splice(idx, 1);
+      localStorage.setItem('pendingUsers', JSON.stringify(pendingUsers));
+      localStorage.setItem('approvedUsers', JSON.stringify(approvedUsers));
+      alert(`✅ تم قبول ${user.name} - تم إرسال إيميل تأكيد`);
+      closeModal();
+      loadSectionData('verifications');
+      loadSectionData('dashboard');
+    }
+
+    function rejectUser(id) {
+      const reason = prompt('سبب الرفض:');
+      if(!reason) return;
+      const pendingUsers = JSON.parse(localStorage.getItem('pendingUsers') || '[]');
+      const rejectedUsers = JSON.parse(localStorage.getItem('rejectedUsers') || '[]');
+      const idx = pendingUsers.findIndex(u => u.id === id);
+      if(idx === -1) return;
+      const user = pendingUsers[idx];
+      user.rejectedAt = new Date().toISOString();
+      user.rejectionReason = reason;
+      user.status = 'rejected';
+      rejectedUsers.push(user);
+      pendingUsers.splice(idx, 1);
+      localStorage.setItem('pendingUsers', JSON.stringify(pendingUsers));
+      localStorage.setItem('rejectedUsers', JSON.stringify(rejectedUsers));
+      alert(`❌ تم رفض ${user.name} - تم إرسال إيميل بالسبب`);
+      closeModal();
+      loadSectionData('verifications');
+      loadSectionData('dashboard');
+    }
+
+    function processWithdrawal(id) {
+      const withdrawals = JSON.parse(localStorage.getItem('withdrawals') || '[]');
+      const w = withdrawals.find(w => w.id === id);
+      if(w) { w.status = 'completed'; localStorage.setItem('withdrawals', JSON.stringify(withdrawals)); }
+      loadSectionData('withdrawals');
+    }
+
+    function closeModal() { document.getElementById('detailsModal').classList.remove('active'); }
+
+    // Initial load
+    loadDashboard(getData());
+  </script>
+</body>
+</html>

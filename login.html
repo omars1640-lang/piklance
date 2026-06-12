@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إنشاء حساب - PikLance</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #F8F9FD;
+      --card-bg: #FFFFFF;
+      --text-primary: #2D3436;
+      --text-secondary: #636E72;
+      --border-color: #E2E8F0;
+      --primary: #6C5CE7;
+      --primary-dark: #5A4BD1;
+      --secondary: #FF6B6B;
+      --green: #10B981;
+      --input-bg: #F8F9FD;
+      --alert-info: #E3F2FD;
+      --alert-warning: #FFF3CD;
+      --alert-success: #D4EDDA;
+    }
+    [data-theme="dark"] {
+      --bg-primary: #121218;
+      --card-bg: #1E1E2D;
+      --text-primary: #E2E8F0;
+      --text-secondary: #A0AEC0;
+      --border-color: #2D2D3F;
+      --input-bg: #252536;
+      --alert-info: #1A2634;
+      --alert-warning: #2D2610;
+      --alert-success: #1A2E1A;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Cairo', 'Segoe UI', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      transition: background 0.3s;
+    }
+    .register-container {
+      background: var(--card-bg);
+      border-radius: 24px;
+      padding: 3rem;
+      max-width: 750px;
+      width: 100%;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      border: 1px solid var(--border-color);
+      transition: background 0.3s;
+    }
+    .logo {
+      font-size: 1.8rem;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      color: var(--text-primary);
+    }
+    .logo span { color: var(--primary); }
+
+    /* نوع الحساب */
+    .account-type-selector {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .type-card {
+      border: 2px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .type-card:hover { border-color: var(--primary); }
+    .type-card.selected {
+      border-color: var(--primary);
+      background: rgba(108,92,231,0.05);
+    }
+    .type-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    .type-title { font-weight: 700; font-size: 1.2rem; margin-bottom: 0.3rem; }
+    .type-desc { font-size: 0.85rem; color: var(--text-secondary); }
+    .type-badge {
+      display: inline-block;
+      margin-top: 0.5rem;
+      padding: 0.2rem 0.8rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-fast { background: var(--alert-success); color: #155724; }
+    .badge-verify { background: var(--alert-warning); color: #856404; }
+
+    /* Form */
+    .form-section { margin-top: 1.5rem; }
+    .form-section.hidden { display: none; }
+    .form-group { margin-bottom: 1.5rem; }
+    .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
+    .required { color: var(--secondary); }
+    .form-control {
+      width: 100%; padding: 0.8rem 1rem; border: 1px solid var(--border-color);
+      border-radius: 12px; background: var(--input-bg); color: var(--text-primary);
+      font-family: 'Cairo', sans-serif; font-size: 1rem; transition: all 0.3s;
+    }
+    .form-control:focus { outline: none; border-color: var(--primary); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .alert {
+      padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; line-height: 1.7;
+    }
+    .alert-info { background: var(--alert-info); border-right: 4px solid var(--primary); }
+    .alert-warning { background: var(--alert-warning); border-right: 4px solid #FFC107; }
+    .alert-success { background: var(--alert-success); border-right: 4px solid #28A745; }
+    .id-upload-area {
+      border: 2px dashed var(--border-color); border-radius: 12px;
+      padding: 1.5rem; text-align: center; cursor: pointer; transition: all 0.3s;
+      background: var(--input-bg);
+    }
+    .id-upload-area:hover { border-color: var(--primary); }
+    .id-upload-area.has-image { border-color: #10B981; background: rgba(16,185,129,0.05); }
+    .id-preview {
+      width: 100%; max-height: 180px; object-fit: contain; border-radius: 8px;
+      margin-top: 1rem; display: none;
+    }
+    .id-preview.show { display: block; }
+    .btn {
+      width: 100%; padding: 1rem; border-radius: 12px; font-weight: 700;
+      font-family: 'Cairo', sans-serif; font-size: 1.1rem; cursor: pointer; border: none;
+      transition: all 0.3s;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-actions { display: flex; gap: 1rem; margin-top: 1.5rem; }
+    .btn-secondary {
+      background: transparent; border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+    }
+    .error-message { color: var(--secondary); font-size: 0.85rem; margin-top: 0.3rem; display: none; }
+    .error-message.show { display: block; }
+    .step-indicator {
+      display: flex; align-items: center; justify-content: center; gap: 1rem; margin: 1.5rem 0;
+    }
+    .step-dot {
+      width: 12px; height: 12px; border-radius: 50%; background: var(--border-color); transition: all 0.3s;
+    }
+    .step-dot.active { background: var(--primary); width: 16px; height: 16px; }
+    .step-dot.completed { background: #10B981; }
+    .step-line { flex: 1; height: 2px; background: var(--border-color); }
+    .step-line.completed { background: #10B981; }
+    .modal {
+      display: none; position: fixed; top:0; left:0; right:0; bottom:0;
+      background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;
+    }
+    .modal.active { display: flex; }
+    .modal-content {
+      background: var(--card-bg); border-radius: 20px; padding: 2rem;
+      max-width: 450px; width: 90%; text-align: center;
+    }
+    .modal-icon { font-size: 4rem; margin-bottom: 1rem; }
+    .modal-title { font-size: 1.5rem; margin-bottom: 1rem; color: var(--text-primary); }
+    .modal-text { color: var(--text-secondary); margin-bottom: 2rem; line-height: 1.8; }
+
+    @media (max-width: 600px) {
+      .account-type-selector { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .register-container { padding: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="register-container">
+    <div class="logo">Pik<span>Lance</span></div>
+
+    <!-- الخطوة 0: اختيار نوع الحساب -->
+    <div id="typeSelection">
+      <h2 style="text-align:center; margin-bottom:1rem; color:var(--text-primary);">اختر نوع حسابك</h2>
+      <div class="account-type-selector">
+        <div class="type-card" id="buyerCard" onclick="selectAccountType('buyer')">
+          <div class="type-icon">🛍️</div>
+          <div class="type-title">عميل (مشتري)</div>
+          <div class="type-desc">أبحث عن خدمات رقمية وأريد شرائها</div>
+          <span class="type-badge badge-fast">⚡ تفعيل فوري</span>
+        </div>
+        <div class="type-card" id="freelancerCard" onclick="selectAccountType('freelancer')">
+          <div class="type-icon">🎨</div>
+          <div class="type-title">مستقل (بائع خدمات)</div>
+          <div class="type-desc">أريد عرض خدماتي وبيعها على المنصة</div>
+          <span class="type-badge badge-verify">🔒 يحتاج توثيق هوية</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- نموذج المشتري (بسيط) -->
+    <div class="form-section hidden" id="buyerForm">
+      <div class="alert alert-success">
+        <strong>⚡ تسجيل سريع!</strong> كعميل، سيتم تفعيل حسابك فوراً بدون انتظار موافقة.
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>الاسم الكامل <span class="required">*</span></label>
+          <input type="text" class="form-control" id="buyerName" placeholder="اسمك الكامل">
+        </div>
+        <div class="form-group">
+          <label>البريد الإلكتروني <span class="required">*</span></label>
+          <input type="email" class="form-control" id="buyerEmail" placeholder="example@email.com">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>رقم الهاتف <span class="required">*</span></label>
+          <input type="text" class="form-control" id="buyerPhone" placeholder="09xxxxxxxx">
+        </div>
+        <div class="form-group">
+          <label>المدينة</label>
+          <select class="form-control" id="buyerCity">
+            <option value="">اختر مدينتك</option>
+            <option value="damascus">دمشق</option>
+            <option value="aleppo">حلب</option>
+            <option value="homs">حمص</option>
+            <option value="latakia">اللاذقية</option>
+            <option value="other">أخرى</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>كلمة المرور <span class="required">*</span></label>
+          <input type="password" class="form-control" id="buyerPassword" placeholder="8 أحرف على الأقل">
+        </div>
+        <div class="form-group">
+          <label>تأكيد كلمة المرور <span class="required">*</span></label>
+          <input type="password" class="form-control" id="buyerConfirmPassword" placeholder="أعد كتابة كلمة المرور">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label style="display:flex; align-items:center; gap:0.5rem;">
+          <input type="checkbox" id="buyerAgreeTerms">
+          <span>أوافق على <a href="terms.html" style="color:var(--primary);">شروط الاستخدام</a></span>
+        </label>
+      </div>
+
+      <div class="btn-actions">
+        <button class="btn btn-secondary" onclick="goBackToType()">تغيير نوع الحساب</button>
+        <button class="btn btn-primary" id="buyerSubmitBtn" onclick="submitBuyerRegistration()">إنشاء حساب فوراً</button>
+      </div>
+    </div>
+
+    <!-- نموذج المستقل (مع توثيق) -->
+    <div class="form-section hidden" id="freelancerForm">
+      <!-- شريط الخطوات -->
+      <div class="step-indicator" id="stepIndicator">
+        <div class="step-dot active" id="dot1"></div>
+        <div class="step-line" id="line1"></div>
+        <div class="step-dot" id="dot2"></div>
+        <div class="step-line" id="line2"></div>
+        <div class="step-dot" id="dot3"></div>
+      </div>
+
+      <!-- الخطوة 1: معلومات أساسية -->
+      <div class="form-section" id="freelancerStep1">
+        <h3 style="margin-bottom:1rem; color:var(--text-primary);">الخطوة 1: المعلومات الأساسية</h3>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>الاسم الكامل <span class="required">*</span></label>
+            <input type="text" class="form-control" id="freelancerName" placeholder="اسمك الكامل">
+          </div>
+          <div class="form-group">
+            <label>البريد الإلكتروني <span class="required">*</span></label>
+            <input type="email" class="form-control" id="freelancerEmail" placeholder="example@email.com">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>رقم الهاتف <span class="required">*</span></label>
+            <input type="text" class="form-control" id="freelancerPhone" placeholder="09xxxxxxxx">
+          </div>
+          <div class="form-group">
+            <label>التخصص الرئيسي <span class="required">*</span></label>
+            <select class="form-control" id="freelancerSpecialty">
+              <option value="">اختر تخصصك</option>
+              <option value="design">تصميم جرافيك</option>
+              <option value="web">تطوير ويب</option>
+              <option value="writing">كتابة محتوى</option>
+              <option value="marketing">تسويق رقمي</option>
+              <option value="audio">هندسة صوت</option>
+              <option value="video">إنتاج فيديو</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>كلمة المرور <span class="required">*</span></label>
+            <input type="password" class="form-control" id="freelancerPassword" placeholder="8 أحرف على الأقل">
+          </div>
+          <div class="form-group">
+            <label>تأكيد كلمة المرور <span class="required">*</span></label>
+            <input type="password" class="form-control" id="freelancerConfirmPassword" placeholder="أعد كتابة كلمة المرور">
+          </div>
+        </div>
+
+        <div class="btn-actions">
+          <button class="btn btn-secondary" onclick="goBackToType()">تغيير نوع الحساب</button>
+          <button class="btn btn-primary" onclick="nextFreelancerStep(2)">التالي: توثيق الهوية</button>
+        </div>
+      </div>
+
+      <!-- الخطوة 2: توثيق الهوية -->
+      <div class="form-section hidden" id="freelancerStep2">
+        <div class="alert alert-warning">
+          <strong>🔒 توثيق الهوية مطلوب للمستقلين</strong>
+          <p style="margin-top:0.5rem;">لحماية العملاء وضمان جدية المستقلين، نطلب صورة هوية رسمية. سيتم مراجعة طلبك خلال 24 ساعة.</p>
+        </div>
+
+        <h3 style="margin-bottom:1rem; color:var(--text-primary);">الخطوة 2: توثيق الهوية</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>نوع الهوية <span class="required">*</span></label>
+            <select class="form-control" id="freelancerIdType">
+              <option value="national_id">بطاقة شخصية</option>
+              <option value="passport">جواز سفر</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>رقم الهوية <span class="required">*</span></label>
+            <input type="text" class="form-control" id="freelancerIdNumber" placeholder="الرقم الموجود على الهوية">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>الاسم الكامل كما في الهوية <span class="required">*</span></label>
+          <input type="text" class="form-control" id="freelancerIdFullName" placeholder="الاسم الرباعي الموجود على الهوية">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>صورة الوجه الأمامي <span class="required">*</span></label>
+            <div class="id-upload-area" id="frontUploadArea" onclick="document.getElementById('frontImage').click()">
+              <div>📷 اضغط لرفع صورة الوجه الأمامي</div>
+              <input type="file" id="frontImage" accept="image/*" style="display:none;" onchange="previewIdImage(this, 'frontPreview', 'frontUploadArea')">
+            </div>
+            <img id="frontPreview" class="id-preview" alt="معاينة الوجه الأمامي">
+          </div>
+          <div class="form-group">
+            <label>صورة الوجه الخلفي <span class="required">*</span></label>
+            <div class="id-upload-area" id="backUploadArea" onclick="document.getElementById('backImage').click()">
+              <div>📷 اضغط لرفع صورة الوجه الخلفي</div>
+              <input type="file" id="backImage" accept="image/*" style="display:none;" onchange="previewIdImage(this, 'backPreview', 'backUploadArea')">
+            </div>
+            <img id="backPreview" class="id-preview" alt="معاينة الوجه الخلفي">
+          </div>
+        </div>
+
+        <div class="btn-actions">
+          <button class="btn btn-secondary" onclick="nextFreelancerStep(1)">السابق</button>
+          <button class="btn btn-primary" onclick="nextFreelancerStep(3)">التالي: مراجعة</button>
+        </div>
+      </div>
+
+      <!-- الخطوة 3: مراجعة وإرسال -->
+      <div class="form-section hidden" id="freelancerStep3">
+        <h3 style="margin-bottom:1rem; color:var(--text-primary);">الخطوة 3: مراجعة وإرسال</h3>
+
+        <div style="background:var(--input-bg); padding:1.5rem; border-radius:12px; margin-bottom:1.5rem;">
+          <div id="freelancerSummary"></div>
+        </div>
+
+        <div class="alert alert-info">
+          <strong>📧 بعد الإرسال:</strong>
+          <ul style="margin-top:0.5rem; padding-right:1.5rem;">
+            <li>ستصلك رسالة تأكيد على بريدك الإلكتروني</li>
+            <li>سيتم مراجعة طلبك خلال 24 ساعة</li>
+            <li>ستصلك رسالة أخرى بنتيجة المراجعة (قبول/رفض)</li>
+          </ul>
+        </div>
+
+        <div class="form-group">
+          <label style="display:flex; align-items:center; gap:0.5rem;">
+            <input type="checkbox" id="freelancerAgreeTerms">
+            <span>أوافق على <a href="terms.html" style="color:var(--primary);">شروط الاستخدام</a> وسياسة التوثيق</span>
+          </label>
+        </div>
+
+        <div class="btn-actions">
+          <button class="btn btn-secondary" onclick="nextFreelancerStep(2)">السابق</button>
+          <button class="btn btn-primary" id="freelancerSubmitBtn" disabled onclick="submitFreelancerRegistration()">تقديم الطلب للمراجعة</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Modals -->
+  <div class="modal" id="buyerSuccessModal">
+    <div class="modal-content">
+      <div class="modal-icon">🎉</div>
+      <h3 class="modal-title">تم إنشاء حسابك بنجاح!</h3>
+      <p class="modal-text">حسابك مفعّل وجاهز للاستخدام فوراً. يمكنك الآن تصفح الخدمات وشرائها.</p>
+      <button class="btn btn-primary" onclick="window.location.href='index.html'">ابدأ التسوق</button>
+    </div>
+  </div>
+
+  <div class="modal" id="freelancerSuccessModal">
+    <div class="modal-content">
+      <div class="modal-icon">📧</div>
+      <h3 class="modal-title">تم تقديم طلبك للمراجعة</h3>
+      <p class="modal-text" id="freelancerModalEmail"></p>
+      <button class="btn btn-primary" onclick="window.location.href='index.html'">العودة للرئيسية</button>
+    </div>
+  </div>
+
+  <script>
+    let accountType = null;
+    let freelancerStep = 1;
+    let frontImageFile = null;
+    let backImageFile = null;
+
+    function selectAccountType(type) {
+      accountType = type;
+      
+      // تحديث التحديد
+      document.getElementById('buyerCard').classList.remove('selected');
+      document.getElementById('freelancerCard').classList.remove('selected');
+      document.getElementById(type + 'Card').classList.add('selected');
+
+      // إخفاء اختيار النوع
+      document.getElementById('typeSelection').classList.add('hidden');
+
+      // إظهار النموذج المناسب
+      if (type === 'buyer') {
+        document.getElementById('buyerForm').classList.remove('hidden');
+        document.getElementById('freelancerForm').classList.add('hidden');
+      } else {
+        document.getElementById('freelancerForm').classList.remove('hidden');
+        document.getElementById('buyerForm').classList.add('hidden');
+        showFreelancerStep(1);
+      }
+    }
+
+    function goBackToType() {
+      accountType = null;
+      freelancerStep = 1;
+      document.getElementById('typeSelection').classList.remove('hidden');
+      document.getElementById('buyerForm').classList.add('hidden');
+      document.getElementById('freelancerForm').classList.add('hidden');
+      document.getElementById('buyerCard').classList.remove('selected');
+      document.getElementById('freelancerCard').classList.remove('selected');
+    }
+
+    // === وظائف المستقل ===
+    function showFreelancerStep(step) {
+      freelancerStep = step;
+      
+      // إخفاء كل الخطوات
+      for(let i=1; i<=3; i++) {
+        document.getElementById('freelancerStep' + i).classList.add('hidden');
+      }
+      
+      // إظهار الخطوة المطلوبة
+      document.getElementById('freelancerStep' + step).classList.remove('hidden');
+      
+      // تحديث شريط التقدم
+      for(let i=1; i<=3; i++) {
+        const dot = document.getElementById('dot' + i);
+        dot.classList.remove('active', 'completed');
+        if(i < step) dot.classList.add('completed');
+        if(i === step) dot.classList.add('active');
+      }
+      document.getElementById('line1').classList.toggle('completed', step > 1);
+      document.getElementById('line2').classList.toggle('completed', step > 2);
+      
+      // إذا وصلنا للخطوة 3، نحدث الملخص
+      if(step === 3) {
+        updateFreelancerSummary();
+        document.getElementById('freelancerAgreeTerms').onchange = function() {
+          document.getElementById('freelancerSubmitBtn').disabled = !this.checked;
+        };
+      }
+    }
+
+    function nextFreelancerStep(step) {
+      if(freelancerStep === 1 && !validateFreelancerStep1()) return;
+      if(freelancerStep === 2 && !validateFreelancerStep2()) return;
+      showFreelancerStep(step);
+    }
+
+    function validateFreelancerStep1() {
+      const name = document.getElementById('freelancerName').value.trim();
+      const email = document.getElementById('freelancerEmail').value.trim();
+      const phone = document.getElementById('freelancerPhone').value.trim();
+      const password = document.getElementById('freelancerPassword').value;
+      const confirm = document.getElementById('freelancerConfirmPassword').value;
+
+      if(!name) { alert('الاسم مطلوب'); return false; }
+      if(!email || !email.includes('@')) { alert('بريد إلكتروني صحيح مطلوب'); return false; }
+      if(!phone || !phone.startsWith('09') || phone.length !== 10) { 
+        alert('رقم هاتف سوري صحيح مطلوب (09xxxxxxxx)'); return false; 
+      }
+      if(password.length < 8) { alert('كلمة المرور 8 أحرف على الأقل'); return false; }
+      if(password !== confirm) { alert('كلمة المرور غير متطابقة'); return false; }
+      
+      return true;
+    }
+
+    function validateFreelancerStep2() {
+      const idNumber = document.getElementById('freelancerIdNumber').value.trim();
+      const idFullName = document.getElementById('freelancerIdFullName').value.trim();
+      
+      if(!idNumber) { alert('رقم الهوية مطلوب'); return false; }
+      if(!idFullName) { alert('الاسم في الهوية مطلوب'); return false; }
+      if(!frontImageFile) { alert('صورة الوجه الأمامي مطلوبة'); return false; }
+      if(!backImageFile) { alert('صورة الوجه الخلفي مطلوبة'); return false; }
+      
+      return true;
+    }
+
+    function previewIdImage(input, previewId, uploadAreaId) {
+      const file = input.files[0];
+      if(!file) return;
+      
+      if(previewId === 'frontPreview') frontImageFile = file;
+      if(previewId === 'backPreview') backImageFile = file;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const preview = document.getElementById(previewId);
+        preview.src = e.target.result;
+        preview.classList.add('show');
+        document.getElementById(uploadAreaId).classList.add('has-image');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function updateFreelancerSummary() {
+      document.getElementById('freelancerSummary').innerHTML = `
+        <p><strong>الاسم:</strong> ${document.getElementById('freelancerName').value}</p>
+        <p><strong>البريد:</strong> ${document.getElementById('freelancerEmail').value}</p>
+        <p><strong>الهاتف:</strong> ${document.getElementById('freelancerPhone').value}</p>
+        <p><strong>التخصص:</strong> ${document.getElementById('freelancerSpecialty').options[document.getElementById('freelancerSpecialty').selectedIndex].text}</p>
+        <p><strong>رقم الهوية:</strong> ${document.getElementById('freelancerIdNumber').value}</p>
+        <p>✅ صور الهوية مرفوعة</p>
+        <p style="color:var(--secondary);">⏳ سيتم مراجعة طلبك خلال 24 ساعة</p>
+      `;
+    }
+
+    function submitFreelancerRegistration() {
+      const userData = {
+        name: document.getElementById('freelancerName').value.trim(),
+        email: document.getElementById('freelancerEmail').value.trim(),
+        phone: document.getElementById('freelancerPhone').value.trim(),
+        specialty: document.getElementById('freelancerSpecialty').value,
+        accountType: 'freelancer',
+        idType: document.getElementById('freelancerIdType').value,
+        idNumber: document.getElementById('freelancerIdNumber').value.trim(),
+        idFullName: document.getElementById('freelancerIdFullName').value.trim(),
+        status: 'pending',
+        submittedAt: new Date().toISOString()
+      };
+
+      // حفظ في localStorage للمراجعة
+      const pendingUsers = JSON.parse(localStorage.getItem('pendingUsers') || '[]');
+      pendingUsers.push({ ...userData, id: Date.now().toString() });
+      localStorage.setItem('pendingUsers', JSON.stringify(pendingUsers));
+
+      // إظهار رسالة النجاح
+      document.getElementById('freelancerModalEmail').innerHTML = `
+        تم إرسال بريد تأكيد إلى <strong>${userData.email}</strong><br>
+        سيتم مراجعة طلبك خلال 24 ساعة وستصلك رسالة بنتيجة المراجعة.
+      `;
+      document.getElementById('freelancerSuccessModal').classList.add('active');
+    }
+
+    // === وظائف المشتري ===
+    function submitBuyerRegistration() {
+      const name = document.getElementById('buyerName').value.trim();
+      const email = document.getElementById('buyerEmail').value.trim();
+      const phone = document.getElementById('buyerPhone').value.trim();
+      const password = document.getElementById('buyerPassword').value;
+      const confirm = document.getElementById('buyerConfirmPassword').value;
+
+      // تحقق بسيط
+      if(!name || !email || !phone || !password) {
+        alert('يرجى ملء جميع الحقول المطلوبة');
+        return;
+      }
+      if(password !== confirm) {
+        alert('كلمة المرور غير متطابقة');
+        return;
+      }
+
+      // حفظ كحساب مفعّل مباشرة
+      const activeUsers = JSON.parse(localStorage.getItem('activeUsers') || '[]');
+      activeUsers.push({
+        name, email, phone, accountType: 'buyer',
+        status: 'active',
+        registeredAt: new Date().toISOString()
+      });
+      localStorage.setItem('activeUsers', JSON.stringify(activeUsers));
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('currentUser', JSON.stringify({ name, email, type: 'buyer' }));
+
+      document.getElementById('buyerSuccessModal').classList.add('active');
+    }
+  </script>
+</body>
+</html>
