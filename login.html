@@ -22,52 +22,25 @@
       width: 450px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.08);
     }
-    .logo {
-      text-align: center;
-      font-size: 1.8rem;
-      font-weight: 800;
-      margin-bottom: 2rem;
-    }
+    .logo { text-align: center; font-size: 1.8rem; font-weight: 800; margin-bottom: 2rem; }
     .logo span { color: #6C5CE7; }
     h2 { text-align: center; margin-bottom: 1.5rem; color: #1E1E2D; }
     .form-group { margin-bottom: 1.2rem; }
-    label { display: block; margin-bottom: 0.4rem; font-weight: 600; color: #2D3436; }
+    label { display: block; margin-bottom: 0.4rem; font-weight: 600; }
     input {
-      width: 100%;
-      padding: 0.8rem;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      font-family: 'Cairo', sans-serif;
-      font-size: 1rem;
+      width: 100%; padding: 0.8rem; border: 1px solid #ddd;
+      border-radius: 10px; font-family: 'Cairo', sans-serif; font-size: 1rem;
     }
     input:focus { outline: none; border-color: #6C5CE7; }
     .btn {
-      width: 100%;
-      padding: 0.8rem;
-      background: #6C5CE7;
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      font-size: 1.1rem;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: 'Cairo', sans-serif;
-      margin-top: 1rem;
+      width: 100%; padding: 0.8rem; background: #6C5CE7; color: #fff;
+      border: none; border-radius: 10px; font-size: 1.1rem; font-weight: 700;
+      cursor: pointer; font-family: 'Cairo', sans-serif; margin-top: 1rem;
     }
     .btn:hover { background: #5A4BD1; }
-    .links {
-      text-align: center;
-      margin-top: 1.5rem;
-    }
+    .links { text-align: center; margin-top: 1.5rem; }
     .links a { color: #6C5CE7; text-decoration: none; font-weight: 600; }
-    .links a:hover { text-decoration: underline; }
-    .back-link {
-      display: block;
-      text-align: center;
-      margin-top: 1rem;
-      color: #636E72;
-      text-decoration: none;
-    }
+    .back-link { display: block; text-align: center; margin-top: 1rem; color: #636E72; text-decoration: none; }
   </style>
 </head>
 <body>
@@ -94,42 +67,69 @@
   </div>
 
   <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyCMrfgQ1kcfPMF-qLM_88HqZUki-xU7OW4",
-    authDomain: "piklance-c2651.firebaseapp.com",
-    projectId: "piklance-c2651",
-    storageBucket: "piklance-c2651.firebasestorage.app",
-    messagingSenderId: "290309648200",
-    appId: "1:290309648200:web:b5948813ef1087ab0ccd7d"
-  };
+    const firebaseConfig = {
+      apiKey: "AIzaSyCMrfgQ1kcfPMF-qLM_88HqZUki-xU7OW4",
+      authDomain: "piklance-c2651.firebaseapp.com",
+      projectId: "piklance-c2651",
+      storageBucket: "piklance-c2651.firebasestorage.app",
+      messagingSenderId: "290309648200",
+      appId: "1:290309648200:web:b5948813ef1087ab0ccd7d"
+    };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-  window.handleLogin = async function() {
-    const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value.trim();
+    window.handleLogin = async function() {
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
 
-    if (!email || !password) {
-      alert('يرجى ملء جميع الحقول');
-      return;
-    }
+      if (!email || !password) {
+        alert('يرجى ملء جميع الحقول');
+        return;
+      }
 
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('currentUser', JSON.stringify({ name: 'اسم المستخدم', email: email }));
-      alert('✅ تم تسجيل الدخول بنجاح');
-      window.location.href = 'index.html';
-    } catch (error) {
-      alert('❌ خطأ: ' + error.message);
-    }
-  };
-</script>
-    }
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
+        
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          
+          if (userData.status === 'pending') {
+            alert('⏳ حسابك قيد المراجعة. يرجى الانتظار.');
+            return;
+          }
+          
+          if (userData.status === 'rejected') {
+            alert('❌ تم رفض حسابك. السبب: ' + (userData.rejectionReason || 'غير محدد'));
+            return;
+          }
+
+          localStorage.setItem('isLoggedIn', 'true');
+          localStorage.setItem('currentUser', JSON.stringify({
+            name: userData.name,
+            email: userData.email,
+            type: userData.accountType
+          }));
+          
+          alert('✅ تم تسجيل الدخول بنجاح');
+          window.location.href = 'index.html';
+        }
+      } catch (error) {
+        if (error.code === 'auth/invalid-credential') {
+          alert('❌ البريد الإلكتروني أو كلمة المرور غير صحيحة');
+        } else if (error.code === 'auth/user-not-found') {
+          alert('❌ لا يوجد حساب بهذا البريد');
+        } else {
+          alert('❌ خطأ: ' + error.message);
+        }
+      }
+    };
   </script>
 </body>
 </html>
