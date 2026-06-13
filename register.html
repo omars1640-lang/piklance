@@ -46,9 +46,7 @@
       cursor: pointer; font-family: 'Cairo', sans-serif; margin-top: 1rem;
     }
     .btn:hover { background: #5A4BD1; }
-    .btn-outline {
-      background: #fff; color: #6C5CE7; border: 2px solid #6C5CE7;
-    }
+    .btn-outline { background: #fff; color: #6C5CE7; border: 2px solid #6C5CE7; }
     .back-link { display: block; text-align: center; margin-top: 1rem; color: #636E72; text-decoration: none; }
     .hidden { display: none; }
     .alert {
@@ -80,7 +78,6 @@
     <div class="logo">Pik<span>Lance</span></div>
     <h2>إنشاء حساب جديد</h2>
 
-    <!-- اختيار النوع -->
     <div id="typeSelection">
       <div class="type-selector">
         <button class="type-btn active" onclick="selectType('buyer')">🛍️ عميل</button>
@@ -88,7 +85,6 @@
       </div>
     </div>
 
-    <!-- نموذج العميل -->
     <div id="buyerForm">
       <div class="alert alert-info">⚡ تفعيل فوري</div>
       <div class="form-group"><label>الاسم الكامل</label><input type="text" id="buyerName"></div>
@@ -97,7 +93,6 @@
       <button class="btn" onclick="registerBuyer()">إنشاء حساب</button>
     </div>
 
-    <!-- نموذج المستقل -->
     <div id="freelancerForm" class="hidden">
       <div class="step-indicator">
         <div class="step-dot active" id="dot1">1</div>
@@ -106,8 +101,6 @@
         <div class="step-line" id="line2"></div>
         <div class="step-dot" id="dot3">3</div>
       </div>
-
-      <!-- خطوة 1 -->
       <div id="fstep1">
         <h3>الخطوة 1: المعلومات الأساسية</h3>
         <div class="form-group"><label>الاسم الكامل</label><input type="text" id="fName"></div>
@@ -117,8 +110,6 @@
         <div class="form-group"><label>كلمة المرور</label><input type="password" id="fPassword"></div>
         <button class="btn" onclick="freelancerNext(2)">التالي</button>
       </div>
-
-      <!-- خطوة 2 -->
       <div id="fstep2" class="hidden">
         <h3>الخطوة 2: توثيق الهوية</h3>
         <div class="alert alert-warning">🔒 مطلوب للموافقة على حسابك</div>
@@ -145,8 +136,6 @@
           <button class="btn" onclick="freelancerNext(3)">التالي</button>
         </div>
       </div>
-
-      <!-- خطوة 3 -->
       <div id="fstep3" class="hidden">
         <h3>الخطوة 3: مراجعة وتقديم</h3>
         <div class="alert alert-info">📧 سيتم مراجعة طلبك خلال 24 ساعة</div>
@@ -170,6 +159,7 @@
       apiKey: "AIzaSyCMrfgQ1kcfPMF-qLM_88HqZUki-xU7OW4",
       authDomain: "piklance-c2651.firebaseapp.com",
       projectId: "piklance-c2651",
+      storageBucket: "piklance-c2651.firebasestorage.app",
       messagingSenderId: "290309648200",
       appId: "1:290309648200:web:b5948813ef1087ab0ccd7d"
     };
@@ -237,62 +227,25 @@
       }
     };
 
-window.registerFreelancer = async function() {
-  const name = document.getElementById('fName').value.trim();
-  const email = document.getElementById('fEmail').value.trim();
-  const password = document.getElementById('fPassword').value;
-
-  if (!name || !email || !password) { alert('يرجى ملء جميع الحقول'); return; }
-
-  try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    await sendEmailVerification(userCredential.user);
-
-    // رفع صور الهوية لـ imgbb
-    const frontFile = document.getElementById('frontImg').files[0];
-    const backFile = document.getElementById('backImg').files[0];
-    let frontURL = '', backURL = '';
-
-    if (frontFile) {
-      const formData = new FormData();
-      formData.append('image', frontFile);
-      const response = await fetch('https://api.imgbb.com/1/upload?key=4028e68ebf94897c0e2ed7ca0e33e4b8', {
-        method: 'POST',
-        body: formData
-      });
-      const data = await response.json();
-      frontURL = data.data.url;
-    }
-
-    if (backFile) {
-      const formData = new FormData();
-      formData.append('image', backFile);
-      const response = await fetch('https://api.imgbb.com/1/upload?key=4028e68ebf94897c0e2ed7ca0e33e4b8', {
-        method: 'POST',
-        body: formData
-      });
-      const data = await response.json();
-      backURL = data.data.url;
-    }
-
-    await setDoc(doc(db, "users", userCredential.user.uid), {
-      name, email,
-      phone: document.getElementById('fPhone').value,
-      specialty: document.getElementById('fSpecialty').value,
-      idNumber: document.getElementById('fIdNumber').value,
-      idName: document.getElementById('fIdName').value,
-      idFrontURL: frontURL,
-      idBackURL: backURL,
-      accountType: 'freelancer',
-      status: 'pending',
-      createdAt: new Date().toISOString()
-    });
-
-    alert('✅ تم تقديم الطلب - تحقق من بريدك الإلكتروني');
-    window.location.href = 'index.html';
-  } catch (error) { alert('❌ ' + error.message); }
-};
-    alert('✅ تم تقديم الطلب - تحقق من بريدك الإلكتروني');
+    window.registerFreelancer = async function() {
+      const name = document.getElementById('fName').value.trim();
+      const email = document.getElementById('fEmail').value.trim();
+      const password = document.getElementById('fPassword').value;
+      if (!name || !email || !password) { alert('يرجى ملء جميع الحقول'); return; }
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await sendEmailVerification(userCredential.user);
+        await setDoc(doc(db, "users", userCredential.user.uid), {
+          name, email,
+          phone: document.getElementById('fPhone').value,
+          specialty: document.getElementById('fSpecialty').value,
+          idNumber: document.getElementById('fIdNumber').value,
+          idName: document.getElementById('fIdName').value,
+          accountType: 'freelancer',
+          status: 'pending',
+          createdAt: new Date().toISOString()
+        });
+        alert('✅ تم تقديم الطلب - تحقق من بريدك الإلكتروني');
         window.location.href = 'index.html';
       } catch (error) { alert('❌ ' + error.message); }
     };
