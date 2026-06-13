@@ -421,198 +421,83 @@
     </div>
   </div>
 
-  <script>
-    let accountType = null;
-    let freelancerStep = 1;
-    let frontImageFile = null;
-    let backImageFile = null;
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    function selectAccountType(type) {
-      accountType = type;
-      
-      // تحديث التحديد
-      document.getElementById('buyerCard').classList.remove('selected');
-      document.getElementById('freelancerCard').classList.remove('selected');
-      document.getElementById(type + 'Card').classList.add('selected');
+  const firebaseConfig = {
+    apiKey: "AIzaSyCMrfgQ1kcfPMF-qLM_88HqZUki-xU7OW4",
+    authDomain: "piklance-c2651.firebaseapp.com",
+    projectId: "piklance-c2651",
+    storageBucket: "piklance-c2651.firebasestorage.app",
+    messagingSenderId: "290309648200",
+    appId: "1:290309648200:web:b5948813ef1087ab0ccd7d"
+  };
 
-      // إخفاء اختيار النوع
-      document.getElementById('typeSelection').classList.add('hidden');
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-      // إظهار النموذج المناسب
-      if (type === 'buyer') {
-        document.getElementById('buyerForm').classList.remove('hidden');
-        document.getElementById('freelancerForm').classList.add('hidden');
-      } else {
-        document.getElementById('freelancerForm').classList.remove('hidden');
-        document.getElementById('buyerForm').classList.add('hidden');
-        showFreelancerStep(1);
-      }
+  // تفعيل زر الإرسال للمستقلين
+  document.getElementById('freelancerAgreeTerms').addEventListener('change', function() {
+    document.getElementById('freelancerSubmitBtn').disabled = !this.checked;
+  });
+
+  window.submitBuyerRegistration = async function() {
+    const name = document.getElementById('buyerName').value.trim();
+    const email = document.getElementById('buyerEmail').value.trim();
+    const password = document.getElementById('buyerPassword').value;
+
+    if (!name || !email || !password) {
+      alert('يرجى ملء جميع الحقول');
+      return;
     }
 
-    function goBackToType() {
-      accountType = null;
-      freelancerStep = 1;
-      document.getElementById('typeSelection').classList.remove('hidden');
-      document.getElementById('buyerForm').classList.add('hidden');
-      document.getElementById('freelancerForm').classList.add('hidden');
-      document.getElementById('buyerCard').classList.remove('selected');
-      document.getElementById('freelancerCard').classList.remove('selected');
-    }
-
-    // === وظائف المستقل ===
-    function showFreelancerStep(step) {
-      freelancerStep = step;
-      
-      // إخفاء كل الخطوات
-      for(let i=1; i<=3; i++) {
-        document.getElementById('freelancerStep' + i).classList.add('hidden');
-      }
-      
-      // إظهار الخطوة المطلوبة
-      document.getElementById('freelancerStep' + step).classList.remove('hidden');
-      
-      // تحديث شريط التقدم
-      for(let i=1; i<=3; i++) {
-        const dot = document.getElementById('dot' + i);
-        dot.classList.remove('active', 'completed');
-        if(i < step) dot.classList.add('completed');
-        if(i === step) dot.classList.add('active');
-      }
-      document.getElementById('line1').classList.toggle('completed', step > 1);
-      document.getElementById('line2').classList.toggle('completed', step > 2);
-      
-      // إذا وصلنا للخطوة 3، نحدث الملخص
-      if(step === 3) {
-        updateFreelancerSummary();
-        document.getElementById('freelancerAgreeTerms').onchange = function() {
-          document.getElementById('freelancerSubmitBtn').disabled = !this.checked;
-        };
-      }
-    }
-
-    function nextFreelancerStep(step) {
-      if(freelancerStep === 1 && !validateFreelancerStep1()) return;
-      if(freelancerStep === 2 && !validateFreelancerStep2()) return;
-      showFreelancerStep(step);
-    }
-
-    function validateFreelancerStep1() {
-      const name = document.getElementById('freelancerName').value.trim();
-      const email = document.getElementById('freelancerEmail').value.trim();
-      const phone = document.getElementById('freelancerPhone').value.trim();
-      const password = document.getElementById('freelancerPassword').value;
-      const confirm = document.getElementById('freelancerConfirmPassword').value;
-
-      if(!name) { alert('الاسم مطلوب'); return false; }
-      if(!email || !email.includes('@')) { alert('بريد إلكتروني صحيح مطلوب'); return false; }
-      if(!phone || !phone.startsWith('09') || phone.length !== 10) { 
-        alert('رقم هاتف سوري صحيح مطلوب (09xxxxxxxx)'); return false; 
-      }
-      if(password.length < 8) { alert('كلمة المرور 8 أحرف على الأقل'); return false; }
-      if(password !== confirm) { alert('كلمة المرور غير متطابقة'); return false; }
-      
-      return true;
-    }
-
-    function validateFreelancerStep2() {
-      const idNumber = document.getElementById('freelancerIdNumber').value.trim();
-      const idFullName = document.getElementById('freelancerIdFullName').value.trim();
-      
-      if(!idNumber) { alert('رقم الهوية مطلوب'); return false; }
-      if(!idFullName) { alert('الاسم في الهوية مطلوب'); return false; }
-      if(!frontImageFile) { alert('صورة الوجه الأمامي مطلوبة'); return false; }
-      if(!backImageFile) { alert('صورة الوجه الخلفي مطلوبة'); return false; }
-      
-      return true;
-    }
-
-    function previewIdImage(input, previewId, uploadAreaId) {
-      const file = input.files[0];
-      if(!file) return;
-      
-      if(previewId === 'frontPreview') frontImageFile = file;
-      if(previewId === 'backPreview') backImageFile = file;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const preview = document.getElementById(previewId);
-        preview.src = e.target.result;
-        preview.classList.add('show');
-        document.getElementById(uploadAreaId).classList.add('has-image');
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function updateFreelancerSummary() {
-      document.getElementById('freelancerSummary').innerHTML = `
-        <p><strong>الاسم:</strong> ${document.getElementById('freelancerName').value}</p>
-        <p><strong>البريد:</strong> ${document.getElementById('freelancerEmail').value}</p>
-        <p><strong>الهاتف:</strong> ${document.getElementById('freelancerPhone').value}</p>
-        <p><strong>التخصص:</strong> ${document.getElementById('freelancerSpecialty').options[document.getElementById('freelancerSpecialty').selectedIndex].text}</p>
-        <p><strong>رقم الهوية:</strong> ${document.getElementById('freelancerIdNumber').value}</p>
-        <p>✅ صور الهوية مرفوعة</p>
-        <p style="color:var(--secondary);">⏳ سيتم مراجعة طلبك خلال 24 ساعة</p>
-      `;
-    }
-
-    function submitFreelancerRegistration() {
-      const userData = {
-        name: document.getElementById('freelancerName').value.trim(),
-        email: document.getElementById('freelancerEmail').value.trim(),
-        phone: document.getElementById('freelancerPhone').value.trim(),
-        specialty: document.getElementById('freelancerSpecialty').value,
-        accountType: 'freelancer',
-        idType: document.getElementById('freelancerIdType').value,
-        idNumber: document.getElementById('freelancerIdNumber').value.trim(),
-        idFullName: document.getElementById('freelancerIdFullName').value.trim(),
-        status: 'pending',
-        submittedAt: new Date().toISOString()
-      };
-
-      // حفظ في localStorage للمراجعة
-      const pendingUsers = JSON.parse(localStorage.getItem('pendingUsers') || '[]');
-      pendingUsers.push({ ...userData, id: Date.now().toString() });
-      localStorage.setItem('pendingUsers', JSON.stringify(pendingUsers));
-
-      // إظهار رسالة النجاح
-      document.getElementById('freelancerModalEmail').innerHTML = `
-        تم إرسال بريد تأكيد إلى <strong>${userData.email}</strong><br>
-        سيتم مراجعة طلبك خلال 24 ساعة وستصلك رسالة بنتيجة المراجعة.
-      `;
-      document.getElementById('freelancerSuccessModal').classList.add('active');
-    }
-
-    // === وظائف المشتري ===
-    function submitBuyerRegistration() {
-      const name = document.getElementById('buyerName').value.trim();
-      const email = document.getElementById('buyerEmail').value.trim();
-      const phone = document.getElementById('buyerPhone').value.trim();
-      const password = document.getElementById('buyerPassword').value;
-      const confirm = document.getElementById('buyerConfirmPassword').value;
-
-      // تحقق بسيط
-      if(!name || !email || !phone || !password) {
-        alert('يرجى ملء جميع الحقول المطلوبة');
-        return;
-      }
-      if(password !== confirm) {
-        alert('كلمة المرور غير متطابقة');
-        return;
-      }
-
-      // حفظ كحساب مفعّل مباشرة
-      const activeUsers = JSON.parse(localStorage.getItem('activeUsers') || '[]');
-      activeUsers.push({
-        name, email, phone, accountType: 'buyer',
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await setDoc(doc(db, "users", userCredential.user.uid), {
+        name: name,
+        email: email,
+        accountType: 'buyer',
         status: 'active',
-        registeredAt: new Date().toISOString()
+        createdAt: new Date().toISOString()
       });
-      localStorage.setItem('activeUsers', JSON.stringify(activeUsers));
       localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('currentUser', JSON.stringify({ name, email, type: 'buyer' }));
-
-      document.getElementById('buyerSuccessModal').classList.add('active');
+      alert('✅ تم إنشاء الحساب بنجاح!');
+      window.location.href = 'index.html';
+    } catch (error) {
+      alert('❌ خطأ: ' + error.message);
     }
-  </script>
+  };
+
+  window.submitFreelancerRegistration = async function() {
+    const name = document.getElementById('freelancerName').value.trim();
+    const email = document.getElementById('freelancerEmail').value.trim();
+    const password = document.getElementById('freelancerPassword').value;
+
+    if (!name || !email || !password) {
+      alert('يرجى ملء جميع الحقول');
+      return;
+    }
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await setDoc(doc(db, "users", userCredential.user.uid), {
+        name: name,
+        email: email,
+        accountType: 'freelancer',
+        status: 'pending',
+        idNumber: document.getElementById('freelancerIdNumber').value,
+        specialty: document.getElementById('freelancerSpecialty').value,
+        createdAt: new Date().toISOString()
+      });
+      document.getElementById('freelancerModalEmail').innerHTML = 'تم تقديم طلبك للمراجعة';
+      document.getElementById('freelancerSuccessModal').classList.add('active');
+    } catch (error) {
+      alert('❌ خطأ: ' + error.message);
+    }
+  };
+</script>
 </body>
 </html>
