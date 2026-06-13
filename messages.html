@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>المراسلات - PikLance</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: #F4F6FA;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .chat-container {
+      width: 800px;
+      height: 600px;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      display: flex;
+      overflow: hidden;
+    }
+    .chat-sidebar {
+      width: 280px;
+      border-left: 1px solid #E2E8F0;
+      display: flex;
+      flex-direction: column;
+    }
+    .chat-sidebar-header {
+      padding: 1rem;
+      border-bottom: 1px solid #E2E8F0;
+      font-weight: 700;
+      background: #F8F9FD;
+    }
+    .chats-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+    .chat-item {
+      padding: 1rem;
+      cursor: pointer;
+      border-bottom: 1px solid #F1F3F9;
+      transition: 0.2s;
+    }
+    .chat-item:hover { background: #F1F3F9; }
+    .chat-item.active { background: #6C5CE7; color: #fff; }
+    .chat-item-name { font-weight: 700; }
+    .chat-item-last { font-size: 0.8rem; color: #636E72; margin-top: 0.2rem; }
+    .chat-item.active .chat-item-last { color: rgba(255,255,255,0.8); }
+    .chat-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .chat-header {
+      padding: 1rem;
+      border-bottom: 1px solid #E2E8F0;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .messages-list {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .msg {
+      max-width: 70%;
+      padding: 0.7rem 1rem;
+      border-radius: 12px;
+      line-height: 1.5;
+    }
+    .msg.sent { background: #6C5CE7; color: #fff; align-self: flex-end; }
+    .msg.received { background: #F1F3F9; color: #2D3436; align-self: flex-start; }
+    .msg small { display: block; font-size: 0.7rem; opacity: 0.7; margin-top: 0.3rem; }
+    .input-area {
+      padding: 1rem;
+      border-top: 1px solid #E2E8F0;
+      display: flex;
+      gap: 0.5rem;
+    }
+    .input-area input {
+      flex: 1;
+      padding: 0.7rem;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      font-family: 'Cairo', sans-serif;
+    }
+    .input-area button {
+      padding: 0.7rem 1.5rem;
+      background: #6C5CE7;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 700;
+    }
+    .no-chat {
+      text-align: center;
+      color: #636E72;
+      margin-top: 5rem;
+      font-size: 1.2rem;
+    }
+    .back-link {
+      display: block;
+      text-align: center;
+      padding: 1rem;
+      color: #6C5CE7;
+      text-decoration: none;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-sidebar">
+      <div class="chat-sidebar-header">📬 المحادثات</div>
+      <div class="chats-list" id="chatsList">
+        <p style="text-align:center; color:#636E72; padding:2rem;">لا توجد محادثات</p>
+      </div>
+      <a href="index.html" class="back-link">← الرئيسية</a>
+    </div>
+    <div class="chat-main">
+      <div class="chat-header" id="chatHeader">💬 اختر محادثة من القائمة</div>
+      <div class="messages-list" id="messagesList">
+        <p class="no-chat">اختر محادثة لبدء المراسلة</p>
+      </div>
+      <div class="input-area" id="inputArea" style="display:none;">
+        <input type="text" id="messageInput" placeholder="اكتب رسالتك..." maxlength="500">
+        <button onclick="sendMessage()">إرسال</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy, onSnapshot, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCMrfgQ1kcfPMF-qLM_88HqZUki-xU7OW4",
+      authDomain: "piklance-c2651.firebaseapp.com",
+      projectId: "piklance-c2651",
+      storageBucket: "piklance-c2651.firebasestorage.app",
+      messagingSenderId: "290309648200",
+      appId: "1:290309648200:web:b5948813ef1087ab0ccd7d"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+
+    if (!isLoggedIn || !currentUser.name) {
+      window.location.href = 'register.html';
+    }
+
+    let selectedChatId = null;
+    const bannedWords = ['كلمة1', 'كلمة2'];
+
+    function filterBadWords(text) {
+      let filtered = text;
+      bannedWords.forEach(word => {
+        filtered = filtered.replace(new RegExp(word, 'gi'), '***');
+      });
+      return filtered;
+    }
+
+    async function loadMyChats() {
+      const snapshot = await getDocs(collection(db, "chats"));
+      const myChats = [];
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.participants && data.participants.includes(currentUser.name)) {
+          myChats.push({ id: doc.id, ...data });
+        }
+      });
+
+      if (myChats.length === 0) {
+        document.getElementById('chatsList').innerHTML = '<p style="text-align:center; color:#636E72; padding:2rem;">لا توجد محادثات</p>';
+      } else {
+        document.getElementById('chatsList').innerHTML = myChats.map(chat => {
+          const other = chat.participants.find(p => p !== currentUser.name);
+          return `
+            <div class="chat-item" onclick="openChat('${chat.id}', '${other}')">
+              <div class="chat-item-name">${other}</div>
+              <div class="chat-item-last">${chat.lastMessage || 'بداية محادثة'}</div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    window.openChat = function(chatId, userName) {
+      selectedChatId = chatId;
+      document.getElementById('chatHeader').textContent = '💬 ' + userName;
+      document.getElementById('inputArea').style.display = 'flex';
+      document.querySelector('.no-chat').style.display = 'none';
+      
+      document.querySelectorAll('.chat-item').forEach(el => el.classList.remove('active'));
+      event.target.closest('.chat-item').classList.add('active');
+      
+      const q = query(collection(db, "chats", chatId, "messages"), orderBy("timestamp"));
+      onSnapshot(q, (snapshot) => {
+        document.getElementById('messagesList').innerHTML = '';
+        snapshot.forEach(doc => {
+          const msg = doc.data();
+          const isSent = msg.sender === currentUser.name;
+          document.getElementById('messagesList').innerHTML += `
+            <div class="msg ${isSent ? 'sent' : 'received'}">
+              ${msg.text}
+              <small>${new Date(msg.timestamp).toLocaleTimeString('ar')}</small>
+            </div>
+          `;
+        });
+        document.getElementById('messagesList').scrollTop = document.getElementById('messagesList').scrollHeight;
+      });
+    };
+
+    window.sendMessage = async function() {
+      const text = document.getElementById('messageInput').value.trim();
+      if (!text || !selectedChatId) return;
+      
+      const filteredText = filterBadWords(text);
+      await addDoc(collection(db, "chats", selectedChatId, "messages"), {
+        text: filteredText,
+        sender: currentUser.name,
+        timestamp: new Date().toISOString()
+      });
+      
+      await setDoc(doc(db, "chats", selectedChatId), {
+        lastMessage: filteredText.substring(0, 50),
+        lastUpdated: new Date().toISOString()
+      }, { merge: true });
+      
+      document.getElementById('messageInput').value = '';
+    };
+
+    document.getElementById('messageInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') sendMessage();
+    });
+
+    // إذا فتحت الصفحة مع ?with=اسم
+    const urlParams = new URLSearchParams(window.location.search);
+    const withUser = urlParams.get('with');
+    if (withUser) {
+      const chatId = [currentUser.name, withUser].sort().join('_');
+      setDoc(doc(db, "chats", chatId), {
+        participants: [currentUser.name, withUser],
+        createdAt: new Date().toISOString()
+      }, { merge: true }).then(() => {
+        selectedChatId = chatId;
+        document.getElementById('chatHeader').textContent = '💬 ' + withUser;
+        document.getElementById('inputArea').style.display = 'flex';
+        document.querySelector('.no-chat').style.display = 'none';
+        const q = query(collection(db, "chats", chatId, "messages"), orderBy("timestamp"));
+        onSnapshot(q, (snapshot) => {
+          document.getElementById('messagesList').innerHTML = '';
+          snapshot.forEach(doc => {
+            const msg = doc.data();
+            const isSent = msg.sender === currentUser.name;
+            document.getElementById('messagesList').innerHTML += `
+              <div class="msg ${isSent ? 'sent' : 'received'}">
+                ${msg.text}
+                <small>${new Date(msg.timestamp).toLocaleTimeString('ar')}</small>
+              </div>
+            `;
+          });
+        });
+      });
+    }
+
+    loadMyChats();
+  </script>
+</body>
+</html>
