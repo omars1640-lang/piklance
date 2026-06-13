@@ -20,62 +20,59 @@
       background: #fff;
       border-radius: 20px;
       padding: 2.5rem;
-      width: 500px;
+      width: 550px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.08);
     }
     .logo { text-align: center; font-size: 1.8rem; font-weight: 800; margin-bottom: 1.5rem; }
     .logo span { color: #6C5CE7; }
-    h2 { text-align: center; margin-bottom: 1.5rem; }
+    h2 { text-align: center; margin-bottom: 1rem; }
     .type-selector { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
     .type-btn {
-      flex: 1;
-      padding: 1rem;
-      border: 2px solid #E2E8F0;
-      border-radius: 12px;
-      text-align: center;
-      cursor: pointer;
-      background: #fff;
-      font-family: 'Cairo', sans-serif;
-      font-weight: 600;
-      transition: 0.3s;
+      flex: 1; padding: 1rem; border: 2px solid #E2E8F0; border-radius: 12px;
+      text-align: center; cursor: pointer; background: #fff;
+      font-family: 'Cairo', sans-serif; font-weight: 600; transition: 0.3s;
     }
     .type-btn.active { border-color: #6C5CE7; background: #F3F0FF; }
     .form-group { margin-bottom: 1rem; }
     label { display: block; margin-bottom: 0.3rem; font-weight: 600; }
     input, select {
-      width: 100%;
-      padding: 0.7rem;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      font-family: 'Cairo', sans-serif;
-      font-size: 1rem;
+      width: 100%; padding: 0.7rem; border: 1px solid #ddd;
+      border-radius: 10px; font-family: 'Cairo', sans-serif; font-size: 1rem;
     }
     input:focus, select:focus { outline: none; border-color: #6C5CE7; }
     .btn {
-      width: 100%;
-      padding: 0.8rem;
-      background: #6C5CE7;
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      font-size: 1.1rem;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: 'Cairo', sans-serif;
-      margin-top: 1rem;
+      width: 100%; padding: 0.8rem; background: #6C5CE7; color: #fff;
+      border: none; border-radius: 10px; font-size: 1.1rem; font-weight: 700;
+      cursor: pointer; font-family: 'Cairo', sans-serif; margin-top: 1rem;
     }
     .btn:hover { background: #5A4BD1; }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-outline {
+      background: #fff; color: #6C5CE7; border: 2px solid #6C5CE7;
+    }
     .back-link { display: block; text-align: center; margin-top: 1rem; color: #636E72; text-decoration: none; }
     .hidden { display: none; }
     .alert {
-      padding: 0.8rem;
-      border-radius: 10px;
-      margin-bottom: 1rem;
-      font-size: 0.9rem;
+      padding: 0.8rem; border-radius: 10px; margin-bottom: 1rem; font-size: 0.9rem;
     }
     .alert-info { background: #E3F2FD; border-right: 4px solid #6C5CE7; }
     .alert-warning { background: #FFF3CD; border-right: 4px solid #F59E0B; }
+    .step-indicator {
+      display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;
+    }
+    .step-dot {
+      width: 30px; height: 30px; border-radius: 50%; background: #E2E8F0;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.9rem; color: #636E72;
+    }
+    .step-dot.active { background: #6C5CE7; color: #fff; }
+    .step-dot.done { background: #10B981; color: #fff; }
+    .step-line { flex: 1; height: 2px; background: #E2E8F0; }
+    .step-line.done { background: #10B981; }
+    .id-upload {
+      border: 2px dashed #ddd; border-radius: 12px; padding: 1.5rem;
+      text-align: center; cursor: pointer; margin-bottom: 0.5rem;
+    }
+    .id-upload img { max-height: 150px; margin-top: 0.5rem; display: none; }
   </style>
 </head>
 <body>
@@ -83,28 +80,82 @@
     <div class="logo">Pik<span>Lance</span></div>
     <h2>إنشاء حساب جديد</h2>
 
-    <div class="type-selector">
-      <button class="type-btn active" id="buyerTypeBtn" onclick="selectType('buyer')">🛍️ عميل</button>
-      <button class="type-btn" id="freelancerTypeBtn" onclick="selectType('freelancer')">🎨 مستقل</button>
+    <!-- اختيار النوع -->
+    <div id="typeSelection">
+      <div class="type-selector">
+        <button class="type-btn active" onclick="selectType('buyer')">🛍️ عميل</button>
+        <button class="type-btn" onclick="selectType('freelancer')">🎨 مستقل</button>
+      </div>
     </div>
 
+    <!-- نموذج العميل -->
     <div id="buyerForm">
-      <div class="alert alert-info">⚡ تفعيل فوري - بدون انتظار موافقة</div>
-      <div class="form-group"><label>الاسم الكامل</label><input type="text" id="buyerName" placeholder="اسمك الكامل"></div>
-      <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="buyerEmail" placeholder="example@email.com"></div>
-      <div class="form-group"><label>رقم الهاتف</label><input type="text" id="buyerPhone" placeholder="09xxxxxxxx"></div>
-      <div class="form-group"><label>كلمة المرور</label><input type="password" id="buyerPassword" placeholder="8 أحرف على الأقل"></div>
+      <div class="alert alert-info">⚡ تفعيل فوري</div>
+      <div class="form-group"><label>الاسم الكامل</label><input type="text" id="buyerName"></div>
+      <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="buyerEmail"></div>
+      <div class="form-group"><label>كلمة المرور</label><input type="password" id="buyerPassword"></div>
       <button class="btn" onclick="registerBuyer()">إنشاء حساب</button>
     </div>
 
+    <!-- نموذج المستقل -->
     <div id="freelancerForm" class="hidden">
-      <div class="alert alert-warning">🔒 سيتم مراجعة طلبك خلال 24 ساعة</div>
-      <div class="form-group"><label>الاسم الكامل</label><input type="text" id="freelancerName" placeholder="اسمك الكامل"></div>
-      <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="freelancerEmail" placeholder="example@email.com"></div>
-      <div class="form-group"><label>رقم الهاتف</label><input type="text" id="freelancerPhone" placeholder="09xxxxxxxx"></div>
-      <div class="form-group"><label>التخصص</label><select id="freelancerSpecialty"><option value="">اختر تخصصك</option><option value="design">تصميم</option><option value="web">برمجة</option><option value="writing">كتابة</option><option value="marketing">تسويق</option></select></div>
-      <div class="form-group"><label>كلمة المرور</label><input type="password" id="freelancerPassword" placeholder="8 أحرف على الأقل"></div>
-      <button class="btn" onclick="registerFreelancer()">تقديم الطلب</button>
+      <div class="step-indicator">
+        <div class="step-dot active" id="dot1">1</div>
+        <div class="step-line" id="line1"></div>
+        <div class="step-dot" id="dot2">2</div>
+        <div class="step-line" id="line2"></div>
+        <div class="step-dot" id="dot3">3</div>
+      </div>
+
+      <!-- خطوة 1 -->
+      <div id="fstep1">
+        <h3>الخطوة 1: المعلومات الأساسية</h3>
+        <div class="form-group"><label>الاسم الكامل</label><input type="text" id="fName"></div>
+        <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="fEmail"></div>
+        <div class="form-group"><label>رقم الهاتف</label><input type="text" id="fPhone"></div>
+        <div class="form-group"><label>التخصص</label><select id="fSpecialty"><option value="">اختر</option><option value="design">تصميم</option><option value="web">برمجة</option><option value="writing">كتابة</option><option value="marketing">تسويق</option></select></div>
+        <div class="form-group"><label>كلمة المرور</label><input type="password" id="fPassword"></div>
+        <button class="btn" onclick="freelancerNext(2)">التالي</button>
+      </div>
+
+      <!-- خطوة 2 -->
+      <div id="fstep2" class="hidden">
+        <h3>الخطوة 2: توثيق الهوية</h3>
+        <div class="alert alert-warning">🔒 مطلوب للموافقة على حسابك</div>
+        <div class="form-group"><label>رقم الهوية</label><input type="text" id="fIdNumber"></div>
+        <div class="form-group"><label>الاسم في الهوية</label><input type="text" id="fIdName"></div>
+        <div class="form-group">
+          <label>صورة الوجه الأمامي</label>
+          <div class="id-upload" onclick="document.getElementById('frontImg').click()">
+            📷 اضغط لرفع الصورة
+            <input type="file" id="frontImg" accept="image/*" style="display:none;" onchange="preview(this, 'frontPreview')">
+            <img id="frontPreview">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>صورة الوجه الخلفي</label>
+          <div class="id-upload" onclick="document.getElementById('backImg').click()">
+            📷 اضغط لرفع الصورة
+            <input type="file" id="backImg" accept="image/*" style="display:none;" onchange="preview(this, 'backPreview')">
+            <img id="backPreview">
+          </div>
+        </div>
+        <div style="display:flex; gap:1rem;">
+          <button class="btn btn-outline" onclick="freelancerNext(1)">السابق</button>
+          <button class="btn" onclick="freelancerNext(3)">التالي</button>
+        </div>
+      </div>
+
+      <!-- خطوة 3 -->
+      <div id="fstep3" class="hidden">
+        <h3>الخطوة 3: مراجعة وتقديم</h3>
+        <div class="alert alert-info">📧 سيتم مراجعة طلبك خلال 24 ساعة</div>
+        <div id="summary"></div>
+        <div style="display:flex; gap:1rem;">
+          <button class="btn btn-outline" onclick="freelancerNext(2)">السابق</button>
+          <button class="btn" onclick="registerFreelancer()">تقديم الطلب</button>
+        </div>
+      </div>
     </div>
 
     <a href="index.html" class="back-link">← العودة للرئيسية</a>
@@ -112,7 +163,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -129,52 +180,85 @@
     const db = getFirestore(app);
 
     window.selectType = function(type) {
-      document.getElementById('buyerTypeBtn').classList.toggle('active', type === 'buyer');
-      document.getElementById('freelancerTypeBtn').classList.toggle('active', type === 'freelancer');
       document.getElementById('buyerForm').classList.toggle('hidden', type !== 'buyer');
       document.getElementById('freelancerForm').classList.toggle('hidden', type !== 'freelancer');
+      document.getElementById('typeSelection').classList.add('hidden');
     };
 
     window.registerBuyer = async function() {
       const name = document.getElementById('buyerName').value.trim();
       const email = document.getElementById('buyerEmail').value.trim();
       const password = document.getElementById('buyerPassword').value;
-
       if (!name || !email || !password) { alert('يرجى ملء جميع الحقول'); return; }
-      if (password.length < 6) { alert('كلمة المرور 6 أحرف على الأقل'); return; }
-
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await sendEmailVerification(userCredential.user);
         await setDoc(doc(db, "users", userCredential.user.uid), {
           name, email, accountType: 'buyer', status: 'active', createdAt: new Date().toISOString()
         });
-        await sendEmailVerification(userCredential.user);
-        alert('✅ تم إنشاء الحساب بنجاح!');
+        alert('✅ تم إنشاء الحساب - تحقق من بريدك الإلكتروني');
         window.location.href = 'index.html';
-      } catch (error) {
-        alert('❌ خطأ: ' + error.message);
+      } catch (error) { alert('❌ ' + error.message); }
+    };
+
+    let freelancerStep = 1;
+    window.freelancerNext = function(step) {
+      freelancerStep = step;
+      document.getElementById('fstep1').classList.toggle('hidden', step !== 1);
+      document.getElementById('fstep2').classList.toggle('hidden', step !== 2);
+      document.getElementById('fstep3').classList.toggle('hidden', step !== 3);
+      
+      document.getElementById('dot1').className = 'step-dot' + (step > 1 ? ' done' : ' active');
+      document.getElementById('dot2').className = 'step-dot' + (step > 2 ? ' done' : step === 2 ? ' active' : '');
+      document.getElementById('dot3').className = 'step-dot' + (step === 3 ? ' active' : '');
+      document.getElementById('line1').className = 'step-line' + (step > 1 ? ' done' : '');
+      document.getElementById('line2').className = 'step-line' + (step > 2 ? ' done' : '');
+
+      if (step === 3) {
+        document.getElementById('summary').innerHTML = `
+          <p><strong>الاسم:</strong> ${document.getElementById('fName').value}</p>
+          <p><strong>البريد:</strong> ${document.getElementById('fEmail').value}</p>
+          <p><strong>التخصص:</strong> ${document.getElementById('fSpecialty').value}</p>
+          <p>✅ صور الهوية جاهزة</p>
+          <p style="color:#F59E0B;">⏳ في انتظار المراجعة</p>
+        `;
+      }
+    };
+
+    window.preview = function(input, previewId) {
+      const file = input.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = document.getElementById(previewId);
+          img.src = e.target.result;
+          img.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
       }
     };
 
     window.registerFreelancer = async function() {
-      const name = document.getElementById('freelancerName').value.trim();
-      const email = document.getElementById('freelancerEmail').value.trim();
-      const password = document.getElementById('freelancerPassword').value;
-      const specialty = document.getElementById('freelancerSpecialty').value;
-
-      if (!name || !email || !password || !specialty) { alert('يرجى ملء جميع الحقول'); return; }
-      if (password.length < 6) { alert('كلمة المرور 6 أحرف على الأقل'); return; }
-
+      const name = document.getElementById('fName').value.trim();
+      const email = document.getElementById('fEmail').value.trim();
+      const password = document.getElementById('fPassword').value;
+      if (!name || !email || !password) { alert('يرجى ملء جميع الحقول'); return; }
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await sendEmailVerification(userCredential.user);
         await setDoc(doc(db, "users", userCredential.user.uid), {
-          name, email, accountType: 'freelancer', specialty, status: 'pending', createdAt: new Date().toISOString()
+          name, email,
+          phone: document.getElementById('fPhone').value,
+          specialty: document.getElementById('fSpecialty').value,
+          idNumber: document.getElementById('fIdNumber').value,
+          idName: document.getElementById('fIdName').value,
+          accountType: 'freelancer',
+          status: 'pending',
+          createdAt: new Date().toISOString()
         });
-        alert('✅ تم تقديم طلبك للمراجعة');
+        alert('✅ تم تقديم الطلب - تحقق من بريدك الإلكتروني');
         window.location.href = 'index.html';
-      } catch (error) {
-        alert('❌ خطأ: ' + error.message);
-      }
+      } catch (error) { alert('❌ ' + error.message); }
     };
   </script>
 </body>
