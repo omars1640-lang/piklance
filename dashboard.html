@@ -488,26 +488,30 @@
     };
 
     window.viewUserDetails = function(uid) {
-      const users = []; 
-      getDocs(collection(db, "users")).then(snapshot => {
-        snapshot.forEach(doc => {
-          if (doc.id === uid) {
-            const u = doc.data();
-            document.getElementById('modalTitle').textContent = 'تفاصيل: ' + u.name;
-            document.getElementById('modalContent').innerHTML = `
-              <p><strong>الاسم:</strong> ${u.name}</p>
-              <p><strong>البريد:</strong> ${u.email}</p>
-              <p><strong>الهاتف:</strong> ${u.phone || '-'}</p>
-              <p><strong>التخصص:</strong> ${u.specialty || '-'}</p>
-              <p><strong>رقم الهوية:</strong> ${u.idNumber || '-'}</p>
-              <p><strong>الاسم في الهوية:</strong> ${u.idName || '-'}</p>
-              <p><strong>الحالة:</strong> ${u.status}</p>
-            `;
-            document.getElementById('detailsModal').classList.add('active');
-          }
-        });
-      });
-    };
+  getDocs(collection(db, "users")).then(snapshot => {
+    snapshot.forEach(doc => {
+      if (doc.id === uid) {
+        const u = doc.data();
+        document.getElementById('modalTitle').textContent = 'تفاصيل: ' + u.name;
+        document.getElementById('modalContent').innerHTML = `
+          <p><strong>الاسم:</strong> ${u.name}</p>
+          <p><strong>البريد:</strong> ${u.email}</p>
+          <p><strong>الهاتف:</strong> ${u.phone || '-'}</p>
+          <p><strong>التخصص:</strong> ${u.specialty || '-'}</p>
+          <p><strong>رقم الهوية:</strong> ${u.idNumber || '-'}</p>
+          <p><strong>الاسم في الهوية:</strong> ${u.idName || '-'}</p>
+          <p><strong>الحالة:</strong> ${u.status}</p>
+          <hr style="margin:1rem 0;">
+          <p><strong>📷 صورة الوجه الأمامي:</strong></p>
+          ${u.idFrontURL ? `<img src="${u.idFrontURL}" style="width:100%; border-radius:8px; margin-bottom:1rem;">` : '<p style="color:#636E72;">لم يتم رفع صورة</p>'}
+          <p><strong>📷 صورة الوجه الخلفي:</strong></p>
+          ${u.idBackURL ? `<img src="${u.idBackURL}" style="width:100%; border-radius:8px;">` : '<p style="color:#636E72;">لم يتم رفع صورة</p>'}
+        `;
+        document.getElementById('detailsModal').classList.add('active');
+      }
+    });
+  });
+};
 
     window.closeModal = function() {
       document.getElementById('detailsModal').classList.remove('active');
