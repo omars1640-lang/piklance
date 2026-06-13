@@ -368,6 +368,7 @@
       <li class="nav-item"><a class="nav-link" onclick="showSection('services')"><span class="nav-icon">📦</span> الخدمات</a></li>
       <li class="nav-item"><a class="nav-link" onclick="showSection('transactions')"><span class="nav-icon">💰</span> المعاملات المالية</a></li>
       <li class="nav-item"><a class="nav-link" onclick="showSection('withdrawals')"><span class="nav-icon">💵</span> طلبات السحب <span class="nav-badge green" id="withdrawBadge">0</span></a></li>
+      <li class="nav-item"><a class="nav-link" onclick="showSection('articles')"><span class="nav-icon">📝</span> المقالات</a></li>
       <li class="nav-item"><a class="nav-link" onclick="showSection('reports')"><span class="nav-icon">📈</span> التقارير</a></li>
       <li class="nav-item"><a class="nav-link" href="index.html"><span class="nav-icon">🏠</span> الموقع الرئيسي</a></li>
     </ul>
@@ -545,6 +546,23 @@
       </div>
     </div>
 
+    <!-- ==================== Articles Section ==================== -->
+<div class="section" id="articles-section">
+  <div class="table-card">
+    <div class="table-header">
+      <h3>📝 إدارة المقالات</h3>
+      <button class="action-btn btn-approve" onclick="addArticle()">+ إضافة مقال</button>
+    </div>
+    <table>
+      <thead><tr><th>العنوان</th><th>الفئة</th><th>التاريخ</th><th>المشاهدات</th><th>الإجراءات</th></tr></thead>
+      <tbody id="articlesTable"></tbody>
+    </table>
+    <div id="noArticles" style="text-align:center; padding:2rem; color:var(--text-light); display:none;">
+      📝 لا توجد مقالات بعد
+    </div>
+  </div>
+</div>
+    
     <!-- ==================== Withdrawals Section ==================== -->
     <div class="section" id="withdrawals-section">
       <div class="table-card">
@@ -614,6 +632,7 @@
       services: '📦 الخدمات',
       transactions: '💰 المعاملات المالية',
       withdrawals: '💵 طلبات السحب',
+      articles: '📝 المقالات',
       reports: '📈 التقارير'
     };
 
@@ -650,6 +669,7 @@
         case 'clients': loadClients(data); break;
         case 'services': loadServices(data); break;
         case 'transactions': loadTransactions(data); break;
+        case 'articles': loadArticles(); break;
         case 'withdrawals': loadWithdrawals(data); break;
         case 'reports': loadReports(data); break;
       }
@@ -937,6 +957,57 @@
       loadSectionData('withdrawals');
     }
 
+    function loadArticles() {
+  const articles = JSON.parse(localStorage.getItem('blogArticles') || '[]');
+  document.getElementById('articlesTable').innerHTML = articles.map((a, index) => `
+    <tr>
+      <td>${a.title}</td>
+      <td>${a.category || '-'}</td>
+      <td>${a.date || '-'}</td>
+      <td>${a.views || 0}</td>
+      <td>
+        <button class="action-btn btn-approve" onclick="editArticle(${index})">✏️ تعديل</button>
+        <button class="action-btn btn-reject" onclick="deleteArticle(${index})">🗑️ حذف</button>
+      </td>
+    </tr>
+  `).join('');
+  document.getElementById('noArticles').style.display = articles.length === 0 ? 'block' : 'none';
+}
+
+function addArticle() {
+  const title = prompt('عنوان المقال:');
+  if (!title) return;
+  const category = prompt('الفئة (مثال: تقنية، عمل حر، تصميم):');
+  const articles = JSON.parse(localStorage.getItem('blogArticles') || '[]');
+  articles.push({
+    title: title,
+    category: category || 'عام',
+    date: new Date().toLocaleDateString('ar'),
+    views: 0
+  });
+  localStorage.setItem('blogArticles', JSON.stringify(articles));
+  loadArticles();
+}
+
+function editArticle(index) {
+  const articles = JSON.parse(localStorage.getItem('blogArticles') || '[]');
+  const newTitle = prompt('العنوان الجديد:', articles[index].title);
+  if (newTitle) {
+    articles[index].title = newTitle;
+    const newCategory = prompt('الفئة الجديدة:', articles[index].category);
+    if (newCategory) articles[index].category = newCategory;
+    localStorage.setItem('blogArticles', JSON.stringify(articles));
+    loadArticles();
+  }
+}
+
+function deleteArticle(index) {
+  if (!confirm('هل أنت متأكد من حذف هذا المقال؟')) return;
+  const articles = JSON.parse(localStorage.getItem('blogArticles') || '[]');
+  articles.splice(index, 1);
+  localStorage.setItem('blogArticles', JSON.stringify(articles));
+  loadArticles();
+}
     function closeModal() { document.getElementById('detailsModal').classList.remove('active'); }
 
     // Initial load
