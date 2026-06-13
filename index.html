@@ -825,6 +825,33 @@
     }
   </style>
 </head>
+  <script>
+  const isLoggedIn = localStorage.getItem('isLoggedIn');
+  const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+
+  if (isLoggedIn === 'true' && currentUser.name) {
+    document.querySelectorAll('.nav-links').forEach(nav => {
+      // إخفاء أزرار الدخول والتسجيل
+      const loginBtn = document.querySelector('a[href="login.html"]');
+      const registerBtn = document.querySelector('a[href="register.html"]');
+      if (loginBtn) loginBtn.style.display = 'none';
+      if (registerBtn) registerBtn.style.display = 'none';
+
+      // إضافة صورة البروفايل
+      const navContainer = document.querySelector('.navbar .container div:last-child');
+      if (navContainer) {
+        navContainer.innerHTML += `
+          <a href="profile.html" style="display:flex; align-items:center; gap:0.5rem; text-decoration:none; color:inherit;">
+            <div style="width:40px; height:40px; border-radius:50%; background:#6C5CE7; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1.1rem;">
+              ${currentUser.name.charAt(0)}
+            </div>
+            <span style="font-weight:600;">${currentUser.name}</span>
+          </a>
+        `;
+      }
+    });
+  }
+</script>
 <body>
   <!-- Navbar -->
   <nav class="navbar" id="navbar">
