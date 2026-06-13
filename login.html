@@ -93,20 +93,41 @@
     <a href="index.html" class="back-link">← العودة للرئيسية</a>
   </div>
 
-  <script>
-    function handleLogin() {
-      const email = document.getElementById('loginEmail').value.trim();
-      const password = document.getElementById('loginPassword').value.trim();
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-      if (!email || !password) {
-        alert('يرجى ملء جميع الحقول');
-        return;
-      }
+  const firebaseConfig = {
+    apiKey: "AIzaSyCMrfgQ1kcfPMF-qLM_88HqZUki-xU7OW4",
+    authDomain: "piklance-c2651.firebaseapp.com",
+    projectId: "piklance-c2651",
+    storageBucket: "piklance-c2651.firebasestorage.app",
+    messagingSenderId: "290309648200",
+    appId: "1:290309648200:web:b5948813ef1087ab0ccd7d"
+  };
 
-      // محاكاة تسجيل دخول
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  window.handleLogin = async function() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value.trim();
+
+    if (!email || !password) {
+      alert('يرجى ملء جميع الحقول');
+      return;
+    }
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
       localStorage.setItem('isLoggedIn', 'true');
       alert('✅ تم تسجيل الدخول بنجاح');
       window.location.href = 'index.html';
+    } catch (error) {
+      alert('❌ خطأ: ' + error.message);
+    }
+  };
+</script>
     }
   </script>
 </body>
