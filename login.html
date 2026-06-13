@@ -121,6 +121,7 @@
     try {
       await signInWithEmailAndPassword(auth, email, password);
       localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('currentUser', JSON.stringify({ name: 'اسم المستخدم', email: email }));
       alert('✅ تم تسجيل الدخول بنجاح');
       window.location.href = 'index.html';
     } catch (error) {
