@@ -232,19 +232,50 @@
       const email = document.getElementById('fEmail').value.trim();
       const password = document.getElementById('fPassword').value;
       if (!name || !email || !password) { alert('يرجى ملء جميع الحقول'); return; }
+
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         await sendEmailVerification(userCredential.user);
+
+        let frontURL = '', backURL = '';
+
+        const frontFile = document.getElementById('frontImg').files[0];
+        if (frontFile) {
+          const formData = new FormData();
+          formData.append('image', frontFile);
+          const res = await fetch('https://api.imgbb.com/1/upload?key=4028e68ebf94897c0e2ed7ca0e33e4b8', {
+            method: 'POST',
+            body: formData
+          });
+          const data = await res.json();
+          if (data.success) frontURL = data.data.url;
+        }
+
+        const backFile = document.getElementById('backImg').files[0];
+        if (backFile) {
+          const formData = new FormData();
+          formData.append('image', backFile);
+          const res = await fetch('https://api.imgbb.com/1/upload?key=4028e68ebf94897c0e2ed7ca0e33e4b8', {
+            method: 'POST',
+            body: formData
+          });
+          const data = await res.json();
+          if (data.success) backURL = data.data.url;
+        }
+
         await setDoc(doc(db, "users", userCredential.user.uid), {
           name, email,
           phone: document.getElementById('fPhone').value,
           specialty: document.getElementById('fSpecialty').value,
           idNumber: document.getElementById('fIdNumber').value,
           idName: document.getElementById('fIdName').value,
+          idFrontURL: frontURL,
+          idBackURL: backURL,
           accountType: 'freelancer',
           status: 'pending',
           createdAt: new Date().toISOString()
         });
+
         alert('✅ تم تقديم الطلب - تحقق من بريدك الإلكتروني');
         window.location.href = 'index.html';
       } catch (error) { alert('❌ ' + error.message); }
